@@ -2,7 +2,7 @@
 
 Tableaux croisés dynamiques **100 % locaux** sur fichiers Excel / CSV variés (SheetJS vendorisé, aucune donnée ne quitte l'appareil, ouvrable en double-clic `file://`). Extrait de `statbel-app` pour être publié sur **sa propre origine** : l'outil ouvre des fichiers quelconques, il ne doit pas partager `localStorage` / IndexedDB avec les PWA d'enquête.
 
-- En ligne : https://statbel-pivot.vercel.app/outils/statbel_pivot.html
+- En ligne : https://statbel-pivot.vercel.app/
 - Carte des modules, flux de données, recettes (ajouter une option / un type de graphique / un module) : [`outils/pivot/README.md`](outils/pivot/README.md)
 
 ## Développement

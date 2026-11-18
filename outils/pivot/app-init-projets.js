@@ -1,4 +1,4 @@
-/* outils/pivot/app-init-projets.js — Interface du tableau croisé (outils/statbel_pivot.html) : Démarrage (5/5) : projets.
+/* outils/pivot/app-init-projets.js — Interface du tableau croisé (index.html) : Démarrage (5/5) : projets.
  * Chargé APRÈS tous les fichiers app*.js (fonctions et constantes existent alors). Les instructions sont dans l'ordre EXACT de l'ancien
  * app.js (IIFE unique découpée), réparties sur les cinq fichiers app-init-* : ne pas les réordonner ni changer l'ordre de chargement. */
 'use strict';

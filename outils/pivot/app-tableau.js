@@ -1,4 +1,4 @@
-/* outils/pivot/app-tableau.js — Interface du tableau croisé (outils/statbel_pivot.html) : Tableau croisé, liste des données (composant « table ») et détail des lignes d'une cellule.
+/* outils/pivot/app-tableau.js — Interface du tableau croisé (index.html) : Tableau croisé, liste des données (composant « table ») et détail des lignes d'une cellule.
  * Script CLASSIQUE (file://) : les déclarations sont GLOBALES et partagées avec les autres fichiers app*.js (ordre de chargement :
  * voir le chargeur de la page et outils/pivot/README.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
  * chargement ; tout ce qui s'exécute au démarrage est dans les fichiers app-init-*.js (chargés en dernier, dans l'ordre). */

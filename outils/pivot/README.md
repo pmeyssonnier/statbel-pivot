@@ -1,6 +1,6 @@
 # Tableaux croisés dynamiques — carte des modules
 
-Outil mainteneur `outils/statbel_pivot.html` : 100 % local, ouvrable en double-clic (`file://`). Les modules sont des **scripts classiques**
+Outil mainteneur `index.html` : 100 % local, ouvrable en double-clic (`file://`). Les modules sont des **scripts classiques**
 (globales `window.Pivot…`, parties pures testables sous Node via `module.exports`), chargés dans l'ordre ci-dessous par un chargeur inline
 (`?v=Date.now()` : jamais de vieux fichier en cache). **Le test lit cette liste dans la page** : un nouveau module = l'ajouter au chargeur, rien d'autre.
 
@@ -70,7 +70,7 @@ Les dispositions enregistrées (`layouts.js`) **ne contiennent pas** de graphiqu
 
 - **Ajouter une option de graphique** : `normOpts` (valeur, borne, défaut) → `DEFS` dans `chart-editor.js` (+ `PANEL_ID` si le panneau doit la porter) → la déclarer dans `chart-capabilities.js` pour les types concernés → la lire dans le moteur (`O.x`). Panneau et fenêtre de tuile sont générés : **rien d'autre à écrire**. Les tests « une option non applicable ne change jamais le rendu » valident le registre.
 - **Ajouter un type de graphique** : l'ajouter à `TYPES` (`chart.js`) et le construire (`PivotChart.register` dans `chart-more.js`, ou rendu dédié), titre via `c.title(texte_par_défaut)`, puis l'ajouter au registre des capacités.
-- **Ajouter un module** : fichier dans `outils/pivot/`, nom ajouté au chargeur de `statbel_pivot.html` (avant `app.js` ; l'interface `app*.js` et ses fichiers de démarrage `app-init-*` se chargent en dernier), partie pure exportée via `module.exports` pour les tests.
+- **Ajouter un module** : fichier dans `outils/pivot/`, nom ajouté au chargeur de `index.html` (avant `app.js` ; l'interface `app*.js` et ses fichiers de démarrage `app-init-*` se chargent en dernier), partie pure exportée via `module.exports` pour les tests.
 - **Persister un nouveau réglage de vue** : `captureView` / `snapshot` / restauration (`app-projets.js`) **et** son assainissement dans `session.js` (`sanitizeState`).
 
 ## Vérifier
@@ -86,9 +86,9 @@ Version : `PIVOT_VERSION` (`app.js`, cœur) + ligne « Pivot x.y.z » du `CHANGE
 
 ## Publication (dépôt autonome, projet Vercel `statbel-pivot`)
 
-L'outil ouvre des fichiers Excel / CSV quelconques : il est publié sur **sa propre origine** (https://statbel-pivot.vercel.app/outils/statbel_pivot.html), distincte de celle des PWA d'enquête (`localStorage` / IndexedDB non partagés).
+L'outil ouvre des fichiers Excel / CSV quelconques : il est publié sur **sa propre origine** (https://statbel-pivot.vercel.app/), distincte de celle des PWA d'enquête (`localStorage` / IndexedDB non partagés).
 
-- `node outils/build-pivot-site.js` assemble `dist-pivot/` (même arborescence relative que le dépôt : la page lit `../vendor/…`) : `index.html` (redirige vers la page), `robots.txt` (aucune indexation), la page, `outils/pivot/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/pivot-tool-site.test.js`.
+- `node outils/build-pivot-site.js` assemble `dist-pivot/` (même arborescence relative que le dépôt : la page lit `vendor/…` et `outils/pivot/…`) : `index.html` (la page de l'outil, seul point d'entrée), `robots.txt` (aucune indexation), `outils/pivot/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/pivot-tool-site.test.js`.
 - Réglages Vercel : Root Directory `.` · Framework *Other* · **Install Command** `true` · **Build Command** `node outils/build-pivot-site.js` · **Output Directory** `dist-pivot` · production sur `main`.
 - Le script de build vit dans `outils/` et non `tools/` : `.vercelignore` supprime `tools/` avant le build.
 - La page reste aussi ouvrable en double-clic depuis le dépôt (`file://`).

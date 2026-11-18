@@ -15,6 +15,10 @@
       ]
     },
     {
+      "source": "/(index.html)?",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    },
+    {
       "source": "/outils/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     }

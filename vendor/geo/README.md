@@ -1,7 +1,7 @@
 # Données géographiques hors-ligne (carte à bulles de l'outil pivot)
 
 `geo-data.js` est **généré** par `node tools/gen-geo-data.js <dossier-avec-node_modules>` (voir l'en-tête du script pour
-les paquets npm à installer hors du dépôt) ; il n'est chargé par `outils/statbel_pivot.html` que lorsqu'on choisit
+les paquets npm à installer hors du dépôt) ; il n'est chargé par `index.html` que lorsqu'on choisit
 « Carte à bulles ». Contenu : contours des pays (monde 110 m + détail Europe du Nord-Ouest 10 m simplifié), pays avec noms
 fr/nl/en/de, communes belges (nom + code NIS), provinces / régions / arrondissements belges (centroïdes), grandes villes du monde.
 

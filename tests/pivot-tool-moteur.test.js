@@ -1,5 +1,5 @@
 /*
- * Test de l'outil Tableaux croisés — outils/statbel_pivot.html — Moteur : parseNumber, unify, compute, drill, formats, filtres, top N, champs calculés, jointures, qualité, géo, graphiques purs, session (parties pures), export CSV/TSV.
+ * Test de l'outil Tableaux croisés — index.html — Moteur : parseNumber, unify, compute, drill, formats, filtres, top N, champs calculés, jointures, qualité, géo, graphiques purs, session (parties pures), export CSV/TSV.
  * (Découpé de l'ancien tests/pivot-tool.test.js en suites indépendantes, exécutées en parallèle : seule la
  *  couverture de la page par scénarios change, pas son contenu.)
  *
