@@ -1,0 +1,52 @@
+name: Tests headless
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Un nouveau push sur la même PR annule le run en cours ; main n'est jamais annulé.
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Cache des navigateurs Playwright
+        id: pw-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+      - name: Dépendances système du navigateur
+        run: npx playwright install-deps chromium
+      - name: Installer Chromium (si absent du cache)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+      # 2 cœurs au CI mais les suites attendent surtout le navigateur : 4 en parallèle (mesuré dans statbel-app).
+      - name: Lancer les suites
+        env:
+          TEST_CONCURRENCY: 4
+        run: node tools/run-tests.js

@@ -1,0 +1,9 @@
+node_modules/
+dist-pivot/
+.vercel/
+*.log
+# Aucune donnée personnelle versionnée : fichiers Excel / CSV d'essai exclus
+*.xlsx
+*.xls
+*.csv
+!vendor/**
