@@ -1,5 +1,5 @@
 /*
- * Test de l'outil Tableaux croisés — outils/statbel_pivot.html — Vues, tableau de bord et tuiles (graphiques de tuile, sélecteurs), filtres riches, nouveaux graphiques et options, tuile = un contenu, panneaux ⚙, navigation entre tuiles
+ * Test de l'outil Tableaux croisés — index.html — Vues, tableau de bord et tuiles (graphiques de tuile, sélecteurs), filtres riches, nouveaux graphiques et options, tuile = un contenu, panneaux ⚙, navigation entre tuiles
  * (Découpé de l'ancien tests/pivot-tool.test.js en suites indépendantes, exécutées en parallèle : seule la
  *  couverture de la page par scénarios change, pas son contenu.)
  *
@@ -31,7 +31,7 @@ const tpo = p => p.evaluate(() => { if (!document.body.classList.contains('tp-op
 const tpc = p => p.evaluate(() => { if (document.body.classList.contains('tp-open')) document.getElementById('btnTbOpts').click(); });
 const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-open')) document.getElementById('btnChOpts').click(); });   // ouvre le panneau « ⚙ Graphique » (tiroir)
 // Session mémorisée : validation de ce qui est relu d'IndexedDB (parties pures)
-const SSM = require('../outils/pivot/session.js');
+const SSM = require('../pivot/session.js');
 
 // ---------- UI ----------
 (async () => {
@@ -45,7 +45,7 @@ const SSM = require('../outils/pivot/session.js');
   // Vues : plusieurs tableaux / graphiques différents sur les mêmes données
   const ctxV = await b.newContext({ viewport: { width: 1600, height: 900 } }), pv = await ctxV.newPage();
   pv.on('pageerror', e => errs.push(e.message));
-  await pv.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pv.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pv.setInputFiles('#fileIn', [f1, f2]); await pv.waitForTimeout(400);
   const vadd = (l, z) => pv.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
   await vadd('Commune', 'rows'); await vadd('Trimestre', 'cols'); await vadd('Nombre d\'établissements', 'vals');
@@ -83,7 +83,7 @@ const SSM = require('../outils/pivot/session.js');
   // Tableau de bord : toutes les vues côte à côte
   const ctxD = await b.newContext({ viewport: { width: 1600, height: 900 } }), pb = await ctxD.newPage();
   pb.on('pageerror', e => errs.push(e.message));
-  await pb.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pb.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pb.setInputFiles('#fileIn', [f1, f2]); await pb.waitForTimeout(400);
   const dadd = (l, z) => pb.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
   await dadd('Commune', 'rows'); await dadd('Nombre d\'établissements', 'vals');
@@ -198,7 +198,7 @@ const SSM = require('../outils/pivot/session.js');
   // Filtres riches dans l'interface : texte, plage, top
   const ctxF = await b.newContext({ viewport: { width: 1500, height: 900 } }), pf = await ctxF.newPage();
   pf.on('pageerror', e => errs.push(e.message));
-  await pf.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pf.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pf.setInputFiles('#fileIn', [f1, f2]); await pf.waitForTimeout(400);
   const fadd = (l, z) => pf.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
   await fadd('Commune', 'rows'); await fadd('Nombre d\'établissements', 'vals');
@@ -234,7 +234,7 @@ const SSM = require('../outils/pivot/session.js');
   // Tableau de bord : déplacer, élargir et agrandir les tuiles
   const ctxT = await b.newContext({ viewport: { width: 1600, height: 900 } }), pt = await ctxT.newPage();
   pt.on('pageerror', e => errs.push(e.message));
-  await pt.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pt.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pt.setInputFiles('#fileIn', [f1, f2]); await pt.waitForTimeout(400);
   await vact(pt, 'add'); await vact(pt, 'add');
   await vact(pt, 'dash'); await pt.waitForTimeout(300);
@@ -272,7 +272,7 @@ const SSM = require('../outils/pivot/session.js');
   const fBE = mk('be.xlsx', [['Commune', 'Année', 'Établissements', 'Habitants'], ['Anvers', 2023, 520, 52000], ['Anvers', 2024, 540, 52500], ['Gand', 2023, 260, 26000], ['Gand', 2024, 280, 26200], ['Liège', 2023, 310, 31000], ['Liège', 2024, 300, 31100], ['Bruxelles', 2023, 1200, 120000], ['Bruxelles', 2024, 1250, 121000]]);
   const ctxG = await b.newContext({ viewport: { width: 1500, height: 900 } }), pg = await ctxG.newPage();
   pg.on('pageerror', e => errs.push(e.message));
-  await pg.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pg.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pg.setInputFiles('#fileIn', [fBE]); await pg.waitForTimeout(400);
   const gadd = (l, z) => pg.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
   await gadd('Commune', 'rows'); await gadd('Établissements', 'vals');
@@ -342,7 +342,7 @@ const SSM = require('../outils/pivot/session.js');
   // Tuile indépendante des filtres globaux : bouton, effet, liste non limitée, sauvegarde / restauration
   { const ctxG = await b.newContext({ viewport: { width: 1500, height: 900 } }), pg2 = await ctxG.newPage();
     pg2.on('pageerror', e => errs.push(e.message));
-    await pg2.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pg2.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pg2.setInputFiles('#fileIn', [{ name: 'g.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Parité;Nb\nA;x;1\nB;y;2\nC;z;4\n') }]); await pg2.waitForTimeout(700);
     const gadd = (l, z) => pg2.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await gadd('Région', 'rows'); await gadd('Nb', 'vals'); await pg2.selectOption('#chType', 'hbar'); await pg2.waitForTimeout(200);
@@ -363,7 +363,7 @@ const SSM = require('../outils/pivot/session.js');
   // Champ du graphique : le graphique ne garde que Commune + valeur, Région / Province ne servent plus qu'à filtrer
   { const ctxC = await b.newContext({ viewport: { width: 1500, height: 900 } }), pc = await ctxC.newPage();
     pc.on('pageerror', e => errs.push(e.message));
-    await pc.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pc.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pc.setInputFiles('#fileIn', [{ name: 'c.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Province;Commune;Nb\nFlandre;Anvers;Anvers;10\nFlandre;Anvers;Malines;5\nFlandre;Limbourg;Hasselt;7\nWallonie;Liège;Liège;8\nWallonie;Namur;Namur;3\n') }]); await pc.waitForTimeout(700);
     const cadd = (l, z) => pc.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await cadd('Région', 'rows'); await cadd('Commune', 'rows'); await cadd('Nb', 'vals'); await pc.selectOption('#chType', 'hbar'); await pc.waitForTimeout(300);
@@ -392,7 +392,7 @@ const SSM = require('../outils/pivot/session.js');
   // Tuile = UN contenu (graphique OU tableau) : bascule ⇄, mêmes champs, persistance ; ancien mode « graphique + tableau » migré en deux tuiles
   { const ctxB = await b.newContext({ viewport: { width: 1500, height: 900 } }), pb2 = await ctxB.newPage();
     pb2.on('pageerror', e => errs.push(e.message));
-    await pb2.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pb2.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pb2.setInputFiles('#fileIn', [{ name: 'b.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nFlandre;Malines;5\nWallonie;Liège;8\n') }]); await pb2.waitForTimeout(700);
     const badd = (l, z) => pb2.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await badd('Commune', 'rows'); await badd('Nb', 'vals'); await pb2.selectOption('#chType', 'hbar'); await pb2.waitForTimeout(200);
@@ -427,7 +427,7 @@ const SSM = require('../outils/pivot/session.js');
   // Panneau « ⚙ Tableau » : réglages du tableau par tuile, un seul tiroir à la fois, bouton sur la tuile « tableau »
   { const ctxT = await b.newContext({ viewport: { width: 1400, height: 900 } }), pt = await ctxT.newPage();
     pt.on('pageerror', e => errs.push(e.message));
-    await pt.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pt.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pt.setInputFiles('#fileIn', [{ name: 't.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nFlandre;Malines;5\nWallonie;Liège;8\n') }]); await pt.waitForTimeout(700);
     const tadd = (l, z) => pt.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await tadd('Commune', 'rows'); await tadd('Nb', 'vals'); await pt.waitForTimeout(300);
@@ -459,7 +459,7 @@ const SSM = require('../outils/pivot/session.js');
   // Liste des champs : rubriques Dimensions / Mesures
   { const ctxD = await b.newContext({ viewport: { width: 1400, height: 900 } }), pd2 = await ctxD.newPage();
     pd2.on('pageerror', e => errs.push(e.message));
-    await pd2.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pd2.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pd2.setInputFiles('#fileIn', [{ name: 'd.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Année;Mois;Nb\nFlandre;Anvers;2023;jan;10\nWallonie;Liège;2024;fév;8\n') }]); await pd2.waitForTimeout(700);
     const grpOf = () => pd2.evaluate(() => { const out = {}; let cur = ''; [...document.querySelectorAll('#fields > *')].forEach(e => { if (e.classList.contains('fgrp')) { cur = e.textContent.trim().split(' ')[0]; out[cur] = []; } else if (e.classList.contains('fld')) out[cur].push(e.querySelector('.fl').textContent); }); return out; });
     const g0 = await grpOf();
@@ -472,7 +472,7 @@ const SSM = require('../outils/pivot/session.js');
   // Navigation entre tuiles : clic sur une tuile, flèches précédent / suivant
   { const ctxN = await b.newContext({ viewport: { width: 1400, height: 900 } }), pnv = await ctxN.newPage();
     pnv.on('pageerror', e => errs.push(e.message));
-    await pnv.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pnv.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pnv.setInputFiles('#fileIn', [{ name: 'n.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nWallonie;Liège;8\n') }]); await pnv.waitForTimeout(700);
     const nadd = (l, z) => pnv.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await nadd('Commune', 'rows'); await nadd('Nb', 'vals'); await pnv.waitForTimeout(200);

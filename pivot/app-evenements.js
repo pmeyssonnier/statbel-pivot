@@ -1,6 +1,6 @@
-/* outils/pivot/app-evenements.js — Interface du tableau croisé (outils/statbel_pivot.html) : Événements (câblage de l'interface).
+/* pivot/app-evenements.js — Interface du tableau croisé (index.html) : Événements (câblage de l'interface).
  * Script CLASSIQUE (file://) : les déclarations sont GLOBALES et partagées avec les autres fichiers app*.js (ordre de chargement :
- * voir le chargeur de la page et outils/pivot/README.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
+ * voir le chargeur de la page et pivot/README.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
  * chargement ; tout ce qui s'exécute au démarrage est dans les fichiers app-init-*.js (chargés en dernier, dans l'ordre). */
 'use strict';
 

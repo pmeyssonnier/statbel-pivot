@@ -1,4 +1,4 @@
-/* outils/pivot/app-init-graphique.js — Interface du tableau croisé (outils/statbel_pivot.html) : Démarrage (3/5) : graphique, champs calculés, grand écran, liste des données, groupes, mesures, détail.
+/* pivot/app-init-graphique.js — Interface du tableau croisé (index.html) : Démarrage (3/5) : graphique, champs calculés, grand écran, liste des données, groupes, mesures, détail.
  * Chargé APRÈS tous les fichiers app*.js (fonctions et constantes existent alors). Les instructions sont dans l'ordre EXACT de l'ancien
  * app.js (IIFE unique découpée), réparties sur les cinq fichiers app-init-* : ne pas les réordonner ni changer l'ordre de chargement. */
 'use strict';

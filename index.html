@@ -550,7 +550,7 @@
   <div class="row"><button id="dXlsx">Exporter XLSX</button><button class="pri" id="dClose">Fermer</button></div>
 </dialog>
 
-<script src="../vendor/xlsx/xlsx.full.min.js"></script>
+<script src="vendor/xlsx/xlsx.full.min.js"></script>
 <script>
 /* Modules du pivot : rechargés à chaque ouverture (évite qu'un ancien app.js gardé en cache fonctionne avec une page HTML neuve). */
 (function () { var v = Date.now(); ['engine','format','import','export','xlsx','chart-axis','chart-trend','chart-cartesian','chart-capabilities','chart','chart-more','chart-editor','cube','hier','geo','calc','groups','measures','join','quality','layouts','session','app','app-donnees','app-navigation','app-vues','app-assistant','app-filtres','app-graphique','app-tableau','app-derives','app-dialogues','app-evenements','app-projets','app-init-donnees','app-init-vues','app-init-graphique','app-init-evenements','app-init-projets'].forEach(function (n) { document.write('<script src="pivot/' + n + '.js?v=' + v + '"><\/script>'); }); })();

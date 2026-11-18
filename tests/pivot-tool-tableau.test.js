@@ -1,5 +1,5 @@
 /*
- * Test de l'outil Tableaux croisés — outils/statbel_pivot.html — Tableau croisé de bout en bout (import, fusion, détail, export, tris, sous-totaux, graphiques, Top N…), jointures, aperçu qualité, groupes / mesures, liste des données, session, dispositions, cube
+ * Test de l'outil Tableaux croisés — index.html — Tableau croisé de bout en bout (import, fusion, détail, export, tris, sous-totaux, graphiques, Top N…), jointures, aperçu qualité, groupes / mesures, liste des données, session, dispositions, cube
  * (Découpé de l'ancien tests/pivot-tool.test.js en suites indépendantes, exécutées en parallèle : seule la
  *  couverture de la page par scénarios change, pas son contenu.)
  *
@@ -47,7 +47,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const errs = [];
   const p = await b.newPage();
   p.on('pageerror', e => errs.push(e.message));
-  await p.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await p.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await p.setInputFiles('#fileIn', [f1, f2]);
   await p.waitForTimeout(400);
   A((await p.$$('#sources .src')).length === 2, '2 sources chargées');
@@ -217,7 +217,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const fJ = mk('c.xlsx', [['Ville', 'Province'], ['Anvers', 'Anvers (prov)'], ['Gand', 'Flandre or.'], ['Boom', 'Anvers (prov)']]);
   const ctxJ = await b.newContext({ viewport: { width: 1500, height: 900 } }), pj = await ctxJ.newPage();
   pj.on('pageerror', e => errs.push(e.message));
-  await pj.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pj.goto(srv.url + '/index.html', { waitUntil: 'load' });
   A(await pj.isDisabled('#wzJoin'), 'jointure : bouton « Jointures… » désactivé sans fichier');
   await pj.setInputFiles('#fileIn', [f1]); await pj.waitForTimeout(300);
   A(await pj.isDisabled('#wzJoin'), 'jointure : toujours désactivé avec une seule source');
@@ -256,7 +256,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const fQ = mk('q.xlsx', [['Commune', 'Nb'], ['Anvers', 10], ['ANVERS', 12], ['Gand', 'n.d.'], ['Gand', 11], ['Mons', 10], ['Mons', 10], ['Mons', 10], ['Boom', null], ['Anvers', 13], ['Gand', 14], ['Liège', 15], ['Namur', 16], ['Spa', 17], ['Huy', 18]]);
   const ctxQ = await b.newContext({ viewport: { width: 1500, height: 900 } }), pq = await ctxQ.newPage();
   pq.on('pageerror', e => errs.push(e.message));
-  await pq.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pq.goto(srv.url + '/index.html', { waitUntil: 'load' });
   A(await pq.isDisabled('#btnPreview'), 'aperçu : bouton désactivé sans fichier');
   await pq.setInputFiles('#fileIn', [fQ]); await pq.waitForTimeout(400);
   A(await pq.isEnabled('#btnPreview'), 'aperçu : bouton activé avec des données');
@@ -280,7 +280,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const fLong = mk('long.xlsx', [['une_colonne_au_nom_vraiment_tres_long_a_afficher_en_entier', 'Nb'], ['x', 1], ['y', 2]]);
   const ctxT2 = await b.newContext({ viewport: { width: 1500, height: 900 } }), pt2 = await ctxT2.newPage();
   pt2.on('pageerror', e => errs.push(e.message));
-  await pt2.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pt2.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pt2.setInputFiles('#fileIn', [fLong]); await pt2.waitForTimeout(400);
   const longFld = '#fields .fld:has(.fl[data-full="une_colonne_au_nom_vraiment_tres_long_a_afficher_en_entier"]) .fl';
   A(await pt2.evaluate(sel => { const e = document.querySelector(sel); return e.scrollWidth > e.clientWidth; }, longFld), 'info-bulle : le nom long est bien tronqué dans la liste des champs');
@@ -300,10 +300,10 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const fBig = mk('big-liste.xlsx', bigRows);
   const ctxL = await b.newContext({ viewport: { width: 1500, height: 900 }, acceptDownloads: true }), pl = await ctxL.newPage();
   pl.on('pageerror', e => errs.push(e.message));
-  await pl.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pl.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pl.setInputFiles('#fileIn', [fBig]); await pl.waitForTimeout(500);
-  { const pvv = fs.readFileSync(path.join(__dirname, '../outils/pivot/app.js'), 'utf8').match(/PIVOT_VERSION = '(\d+\.\d+\.\d+)'/)[1]; A(await pl.textContent('#pvVer') === 'v' + pvv && fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8').includes('Pivot ' + pvv), 'version : numéro affiché à côté du titre, identique à celui du CHANGELOG'); }
-  { const pvr = await ctxL.newPage(); await pvr.route('**/statbel_pivot.html', async r => { const rs = await r.fetch(); await r.fulfill({ response: rs, body: (await rs.text()).replace(/<small id="pvVer"[^>]*><\/small>/, '') }); }); await pvr.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' }); A(/^v\d+\.\d+\.\d+$/.test(await pvr.textContent('header #pvVer')) && await pvr.isVisible('#pvVer'), 'version : badge ajouté par le script même avec une page HTML en cache sans élément'); await pvr.close(); }
+  { const pvv = fs.readFileSync(path.join(__dirname, '../pivot/app.js'), 'utf8').match(/PIVOT_VERSION = '(\d+\.\d+\.\d+)'/)[1]; A(await pl.textContent('#pvVer') === 'v' + pvv && fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8').includes('Pivot ' + pvv), 'version : numéro affiché à côté du titre, identique à celui du CHANGELOG'); }
+  { const pvr = await ctxL.newPage(); await pvr.route('**/index.html', async r => { const rs = await r.fetch(); await r.fulfill({ response: rs, body: (await rs.text()).replace(/<small id="pvVer"[^>]*><\/small>/, '') }); }); await pvr.goto(srv.url + '/index.html', { waitUntil: 'load' }); A(/^v\d+\.\d+\.\d+$/.test(await pvr.textContent('header #pvVer')) && await pvr.isVisible('#pvVer'), 'version : badge ajouté par le script même avec une page HTML en cache sans élément'); await pvr.close(); }
   A(await pl.isHidden('#listBar') && await pl.inputValue('#optMode') === 'pivot', 'liste : mode « Tableau croisé » par défaut, barre de liste masquée');
   await pl.selectOption('#optMode', 'list'); await pl.waitForTimeout(300);
   const lsRows = () => pl.$$eval('#out tbody tr', e => e.length), lsHead = () => pl.$$eval('#out thead th', e => e.map(x => x.textContent.replace(/[▲▼]/g, '').trim()).join('|'));
@@ -334,7 +334,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   const fGr = mk('groupes.xlsx', [['Etat civil', 'Age', 'Nb'], ['Single', 17, 1], ['Married', 18, 1], ['Divorced', 24, 1], ['Separated', 25, 1], ['Widowed', 80, 1], ['Single', 30, 1], ['Other', 34, 1]]);
   const ctxGr = await b.newContext({ viewport: { width: 1500, height: 900 } }), pgr = await ctxGr.newPage();
   pgr.on('pageerror', e => errs.push(e.message));
-  await pgr.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pgr.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pgr.setInputFiles('#fileIn', [fGr]); await pgr.waitForTimeout(500);
   await wzOpen(pgr, 3); await pgr.evaluate(() => { document.getElementById('detGrp').open = true; }); await pgr.waitForTimeout(200);
   await pgr.selectOption('#gSrc', { label: 'Etat civil' }); await pgr.waitForTimeout(100);
@@ -383,7 +383,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   // Mesures dans l'interface
   const ctxMes = await b.newContext({ viewport: { width: 1500, height: 900 }, acceptDownloads: true }), pmes = await ctxMes.newPage();
   pmes.on('pageerror', e => errs.push(e.message));
-  await pmes.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pmes.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pmes.setInputFiles('#fileIn', [fGr]); await pmes.waitForTimeout(500);
   await wzOpen(pmes, 3); await pmes.evaluate(() => { document.getElementById('detMes').open = true; }); await pmes.waitForTimeout(100);
   await pmes.fill('#mName', 'Nb célibataires'); await pmes.click('#mAddCond'); await pmes.selectOption('#mConds [data-f="key"]', { label: 'Etat civil' }); await pmes.fill('#mConds [data-f="v"]', 'Single'); await pmes.dispatchEvent('#mConds [data-f="v"]', 'change');
@@ -420,7 +420,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   // Session mémorisée (IndexedDB) : survit à une actualisation ; effaçable ; désactivable
   const ctxS = await b.newContext(), ps = await ctxS.newPage();
   ps.on('pageerror', e => errs.push(e.message));
-  await ps.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await ps.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await ps.setInputFiles('#fileIn', [f1, f2]); await ps.waitForTimeout(400);
   await ps.evaluate(() => {
     const add = (l, z) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click();
@@ -473,7 +473,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   // Cube de données : champ du graphique par défaut + champs de filtrage (sélecteurs globaux), exception par vue, persistance
   { const ctxQ = await b.newContext({ viewport: { width: 1500, height: 900 } }), pq = await ctxQ.newPage();
     pq.on('pageerror', e => errs.push(e.message));
-    await pq.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pq.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pq.setInputFiles('#fileIn', [{ name: 'q.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Province;Commune;Nb\nFlandre;Anvers;Anvers;10\nFlandre;Anvers;Malines;5\nFlandre;Limbourg;Hasselt;7\nWallonie;Liège;Liège;8\nWallonie;Namur;Namur;3\n') }]); await pq.waitForTimeout(700);
     const qadd = (l, z) => pq.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await qadd('Région', 'rows'); await qadd('Commune', 'rows'); await qadd('Nb', 'vals'); await pq.selectOption('#chType', 'hbar'); await pq.waitForTimeout(300);

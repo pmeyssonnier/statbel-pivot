@@ -1,5 +1,5 @@
 /*
- * Test du site AUTONOME du pivot (outils/build-pivot-site.js) : le dossier assemblé contient l'outil et rien des applications,
+ * Test du site AUTONOME du pivot (build-pivot-site.js) : le dossier assemblé contient l'outil et rien des applications,
  * et la page y fonctionne depuis une racine à elle (sans le reste du dépôt) : version affichée, SheetJS chargé, aucune erreur JS.
  * (Un second projet Vercel la sert sur une autre origine que les PWA : cf. README.)
  *
@@ -15,19 +15,19 @@ const A = (cond, msg) => { if (!cond) { fails++; console.log('✗ FAIL ' + msg);
 
 (async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pivot-site-'));
-  const out = cp.execFileSync('node', [path.join(__dirname, '..', 'outils', 'build-pivot-site.js'), '--out', dir], { encoding: 'utf8' });
+  const out = cp.execFileSync('node', [path.join(__dirname, '..', 'build-pivot-site.js'), '--out', dir], { encoding: 'utf8' });
   const ls = d => fs.readdirSync(path.join(dir, d)).sort();
-  const sources = fs.readdirSync(path.join(__dirname, '..', 'outils', 'pivot')).filter(f => f.endsWith('.js')).sort();
+  const sources = fs.readdirSync(path.join(__dirname, '..', 'pivot')).filter(f => f.endsWith('.js')).sort();
   A(/Site du pivot/.test(out), 'construction : ' + out.trim());
-  A(JSON.stringify(ls('outils/pivot')) === JSON.stringify(sources), 'tous les modules du pivot sont copiés (' + sources.length + ')');
-  A(fs.existsSync(path.join(dir, 'index.html')) && fs.existsSync(path.join(dir, 'robots.txt')) && /Disallow: \//.test(fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8')), 'index.html (redirection) et robots.txt (aucune indexation)');
+  A(JSON.stringify(ls('pivot')) === JSON.stringify(sources), 'tous les modules du pivot sont copiés (' + sources.length + ')');
+  A(fs.existsSync(path.join(dir, 'index.html')) && fs.existsSync(path.join(dir, 'robots.txt')) && /Disallow: \//.test(fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8')), 'index.html (page de l\'outil) et robots.txt (aucune indexation)');
   A(fs.existsSync(path.join(dir, 'vendor/xlsx/xlsx.full.min.js')) && fs.existsSync(path.join(dir, 'vendor/geo/geo-data.js')), 'SheetJS et fonds de carte présents');
   const top = fs.readdirSync(dir).sort().join();
-  A(top === 'index.html,outils,robots.txt,vendor' && !fs.existsSync(path.join(dir, 'sw.js')) && !fs.existsSync(path.join(dir, 'js')) && ls('outils').join() === 'pivot,statbel_pivot.html', 'rien des applications (ni service worker, ni js/, ni autre outil) : ' + top);
-  // Les chemins relatifs de la page (../vendor/…, pivot/…) existent tous dans le dossier assemblé
-  const html = fs.readFileSync(path.join(dir, 'outils/statbel_pivot.html'), 'utf8');
-  const refs = [...html.matchAll(/(?:src|href)="((?:\.\.\/)?(?:vendor|pivot)\/[^"'?+]+)"/g)].map(m => m[1]);   // le chargeur dynamique des modules est couvert par la liste ci-dessus
-  A(refs.length > 0 && refs.every(r => fs.existsSync(path.join(dir, 'outils', r))), 'chemins relatifs de la page résolus dans le dossier (' + refs.join(', ') + ')');
+  A(top === 'index.html,pivot,robots.txt,vendor' && !fs.existsSync(path.join(dir, 'sw.js')) && !fs.existsSync(path.join(dir, 'js')), 'rien des applications (ni service worker, ni js/, ni autre outil) : ' + top);
+  // Les chemins relatifs de la page (vendor/…, pivot/…) existent tous dans le dossier assemblé
+  const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+  const refs = [...html.matchAll(/(?:src|href)="((?:vendor|outils\/pivot)\/[^"'?+]+)"/g)].map(m => m[1]);   // le chargeur dynamique des modules est couvert par la liste ci-dessus
+  A(refs.length > 0 && refs.every(r => fs.existsSync(path.join(dir, r))), 'chemins relatifs de la page résolus dans le dossier (' + refs.join(', ') + ')');
 
   const srv = await serve(dir);
   const b = await chromium.launch({ executablePath: EXEC, args: ['--no-sandbox'] });
@@ -39,7 +39,7 @@ const A = (cond, msg) => { if (!cond) { fails++; console.log('✗ FAIL ' + msg);
   await p.waitForSelector('#fileIn', { state: 'attached', timeout: 5000 });
   await p.waitForTimeout(600);
   const r = await p.evaluate(() => ({ url: location.pathname, v: window.PIVOT_VERSION, xl: typeof window.XLSX, eng: typeof window.PivotEngine, ver: (document.querySelector('#pvVer') || {}).textContent }));
-  A(r.url === '/outils/statbel_pivot.html', 'index.html redirige vers la page de l\'outil (' + r.url + ')');
+  A(r.url === '/index.html', 'index.html sert directement la page de l\'outil (' + r.url + ')');
   A(/^\d+\.\d+\.\d+$/.test(r.v) && r.ver === 'v' + r.v && r.xl === 'object' && r.eng === 'object', 'version ' + r.v + ' affichée, SheetJS et moteur chargés');
   A(ko.length === 0, 'aucune ressource en erreur (' + (ko.join(' | ') || 'ok') + ')');
   A(errs.length === 0, 'aucune erreur JS ' + errs.join('|'));

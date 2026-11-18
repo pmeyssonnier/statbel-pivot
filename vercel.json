@@ -15,7 +15,11 @@
       ]
     },
     {
-      "source": "/outils/(.*)",
+      "source": "/(index.html)?",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    },
+    {
+      "source": "/pivot/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     }
   ]

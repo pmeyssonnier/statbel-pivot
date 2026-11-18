@@ -1,5 +1,5 @@
 /*
- * Test de l'outil Tableaux croisés — outils/statbel_pivot.html — Projets, assistant « Projet », grand écran, actualisation, mobile, sélecteurs, onglets de vues, accordéons, navigation à deux niveaux et menus
+ * Test de l'outil Tableaux croisés — index.html — Projets, assistant « Projet », grand écran, actualisation, mobile, sélecteurs, onglets de vues, accordéons, navigation à deux niveaux et menus
  * (Découpé de l'ancien tests/pivot-tool.test.js en suites indépendantes, exécutées en parallèle : seule la
  *  couverture de la page par scénarios change, pas son contenu.)
  *
@@ -42,7 +42,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Réordonner les onglets de vues : boutons ◂ ▸ et glisser-déposer ; ordre mémorisé et repris par le tableau de bord
   const ctxO = await b.newContext({ viewport: { width: 1600, height: 900 } }), po = await ctxO.newPage();
   po.on('pageerror', e => errs.push(e.message));
-  await po.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await po.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await po.setInputFiles('#fileIn', [f1, f2]); await po.waitForTimeout(400);
   const otabs = () => po.$$eval('#viewTabs .vt', e => e.map(x => x.textContent + (x.classList.contains('on') ? '*' : '')).join('|'));
   A(!(await vhas(po, 'left')), 'onglets : pas de déplacement avec une seule vue');
@@ -65,7 +65,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Accordéons : Sources, Champs, zones de configuration
   const ctxC = await b.newContext({ viewport: { width: 1500, height: 900 } }), pc = await ctxC.newPage();
   pc.on('pageerror', e => errs.push(e.message));
-  await pc.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pc.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pc.setInputFiles('#fileIn', [f1, f2]); await pc.waitForTimeout(400);
   const IDS = ['accFld', 'accZ_filters', 'accZ_cols', 'accZ_rows', 'accZ_vals'];
   const accOpen = () => pc.evaluate(ids => ids.map(id => document.getElementById(id).open).join(), IDS);
@@ -85,7 +85,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Projets : enregistrer un tableau de bord complet, en créer un nouveau (vide), ouvrir, dupliquer, exporter, importer
   const ctxP = await b.newContext({ viewport: { width: 1500, height: 900 }, acceptDownloads: true }), pp = await ctxP.newPage();
   pp.on('pageerror', e => errs.push(e.message));
-  await pp.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pp.goto(srv.url + '/index.html', { waitUntil: 'load' });
   A(/Projet 1/.test(await pp.textContent('#btnProj')), 'projets : « Projet 1 » proposé au premier lancement');
   await pp.setInputFiles('#fileIn', [f1]); await pp.waitForTimeout(400);
   const padd2 = (l, z) => pp.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
@@ -149,7 +149,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Grand écran : tableau et graphique maximisés (mode agrandi, graphique à droite, en-têtes collants)
   const pd = await (await b.newContext({ viewport: { width: 1920, height: 1080 } })).newPage();
   pd.on('pageerror', e => errs.push(e.message));
-  await pd.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pd.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pd.setInputFiles('#fileIn', [f1, f2]); await pd.waitForTimeout(400);
   await pd.evaluate(() => {
     const add = (l, z) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click();
@@ -164,8 +164,8 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   });
   A(col.ovA === 'visible' && col.ovF === 'visible', 'grand écran : aucun ascenseur dans la colonne de gauche (sources, champs)');
   A(col.zRightOfA && col.zAboveT && col.zTop && col.tW > col.aW * 3, 'grand écran : champs à gauche, zones (Filtres, Colonnes, Lignes, Valeurs) au-dessus du tableau/graphique de la tuile, à droite (' + Math.round(col.aW) + ' | ' + Math.round(col.tW) + ' px)');
-  const expMods = (fs.readFileSync(path.join(__dirname, '../outils/statbel_pivot.html'), 'utf8').match(/\[('engine'[^\]]*)\]\.forEach/) || ['', ''])[1].split(',').map(x => x.trim().replace(/'/g, ''));
-  A(expMods.length >= 19 && expMods.every(m => fs.existsSync(path.join(__dirname, '../outils/pivot/' + m + '.js'))) && await pd.evaluate(exp => { const src = [...document.querySelectorAll('script[src*="pivot/"]')].map(x => x.getAttribute('src')); return src.length === exp.length && src.every((x, i) => new RegExp('^pivot/' + exp[i] + '\\.js\\?v=\\d+$').test(x)); }, expMods), 'modules du pivot rechargés à chaque ouverture, dans l\'ordre du chargeur (pas de vieux fichier en cache ; la liste attendue est lue dans la page)');
+  const expMods = (fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8').match(/\[('engine'[^\]]*)\]\.forEach/) || ['', ''])[1].split(',').map(x => x.trim().replace(/'/g, ''));
+  A(expMods.length >= 19 && expMods.every(m => fs.existsSync(path.join(__dirname, '../pivot/' + m + '.js'))) && await pd.evaluate(exp => { const src = [...document.querySelectorAll('script[src*="pivot/"]')].map(x => x.getAttribute('src')); return src.length === exp.length && src.every((x, i) => new RegExp('^pivot/' + exp[i] + '\\.js\\?v=\\d+$').test(x)); }, expMods), 'modules du pivot rechargés à chaque ouverture, dans l\'ordre du chargeur (pas de vieux fichier en cache ; la liste attendue est lue dans la page)');
   const stick = await pd.evaluate(() => { const th = [...document.querySelectorAll('#out thead tr:nth-child(2) th')].find(x => !x.classList.contains('fc')); return { pos: getComputedStyle(th).position, top: th.style.top, h1: document.querySelector('#out thead tr').getBoundingClientRect().height }; });
   A(stick.pos === 'sticky' && Math.abs(parseFloat(stick.top) - stick.h1) < 1, 'grand écran : en-têtes collants, 2e ligne sous la 1re (' + stick.top + ' ≈ ' + Math.round(stick.h1) + ' px)');
   const wA = await pd.evaluate(() => document.querySelector('#out').getBoundingClientRect().width);
@@ -240,7 +240,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   const { devices } = require('playwright-core');
   const pm = await (await b.newContext({ ...devices['Pixel 7'] })).newPage();
   pm.on('pageerror', e => errs.push(e.message));
-  await pm.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+  await pm.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pm.setInputFiles('#fileIn', [f1, f2]);
   await pm.waitForTimeout(400);
   const larg = () => pm.evaluate(() => ({ iw: innerWidth, sw: document.documentElement.scrollWidth }));
@@ -260,7 +260,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   { const ctxK = await b.newContext({ viewport: { width: 1500, height: 900 } }), pk = await ctxK.newPage();
     pk.on('pageerror', e => errs.push(e.message));
     let kCsv = 'Code;Parité;Nb\n'; for (let i = 0; i < 2600; i++) kCsv += 'C' + String(i).padStart(4, '0') + ';' + (i % 2 ? 'Impair' : 'Pair') + ';1\n';
-    await pk.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pk.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pk.setInputFiles('#fileIn', [{ name: 'codes.csv', mimeType: 'text/csv', buffer: Buffer.from(kCsv) }]); await pk.waitForTimeout(800);
     const kadd = (l, z) => pk.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await kadd('Code', 'rows'); await kadd('Nb', 'vals'); await pk.selectOption('#chType', 'hbar'); await pk.waitForTimeout(200);
@@ -313,7 +313,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Panneau « ⚙ Graphique » : sections repliables, réglages alignés (même largeur), sections vides masquées selon le type, feuille sur téléphone
   { const ctxO = await b.newContext({ viewport: { width: 1500, height: 900 } }), po = await ctxO.newPage();
     po.on('pageerror', e => errs.push(e.message));
-    await po.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await po.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await po.setInputFiles('#fileIn', [{ name: 'o.csv', mimeType: 'text/csv', buffer: Buffer.from('Commune;Nb\nA;1\nB;2\nC;3\n') }]); await po.waitForTimeout(700);
     const oadd = (l, z) => po.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await oadd('Commune', 'rows'); await oadd('Nb', 'vals'); await po.selectOption('#chType', 'bar'); await po.waitForTimeout(300);
@@ -334,7 +334,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Navigation à deux niveaux : menu Données (icônes), fil d'Ariane, menus ▾ ⋯ Exporter, tableau de bord, « Ouvrir » (vrais clics)
   { const ctxN = await b.newContext({ viewport: { width: 1400, height: 900 } }), pn = await ctxN.newPage();
     pn.on('pageerror', e => errs.push(e.message));
-    await pn.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pn.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pn.setInputFiles('#fileIn', [{ name: 'n.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nFlandre;Malines;5\nWallonie;Liège;8\n') }]); await pn.waitForTimeout(700);
     const nadd = (l, z) => pn.evaluate(([l, z]) => [...document.querySelectorAll('#fields .fld')].find(x => x.querySelector('.fl').textContent === l).querySelector('button[data-z="' + z + '"]').click(), [l, z]);
     await nadd('Commune', 'rows'); await nadd('Nb', 'vals'); await pn.selectOption('#chType', 'hbar'); await pn.waitForTimeout(300);
@@ -382,7 +382,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Navigation sur téléphone : les menus ▾ ⋯ Exporter restent entièrement dans l'écran
   { const ctxM = await b.newContext({ viewport: { width: 390, height: 800 }, hasTouch: true }), pm = await ctxM.newPage();
     pm.on('pageerror', e => errs.push(e.message));
-    await pm.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pm.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pm.setInputFiles('#fileIn', [{ name: 'm.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nWallonie;Liège;8\n') }]); await pm.waitForTimeout(700);
     if (!(await pm.isVisible('#vsel'))) { await pm.click('#btnCfg'); await pm.waitForTimeout(300); }
     const inScreen = sel => pm.$eval(sel, e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= document.documentElement.clientWidth && r.width > 100; });
@@ -396,7 +396,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // Menu Données : infobulles riches (survol, clavier) et entrées Champs calculés / Groupes / Mesures
   { const ctxT = await b.newContext({ viewport: { width: 1400, height: 900 } }), ptt = await ctxT.newPage();
     ptt.on('pageerror', e => errs.push(e.message));
-    await ptt.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await ptt.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await ptt.setInputFiles('#fileIn', [{ name: 't.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nWallonie;Liège;8\n') }]); await ptt.waitForTimeout(700);
     const tipOf = () => ptt.$eval('#railTip', e => ({ on: e.classList.contains('on'), txt: e.textContent }));
     await ptt.hover('#btnCube'); await ptt.waitForTimeout(500);
@@ -420,7 +420,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   // PC : bouton « ⚙ Configurer » quand le panneau de gauche est masqué (tableau de bord, mode agrandi)
   { const ctxP = await b.newContext({ viewport: { width: 1400, height: 900 } }), pcf = await ctxP.newPage();
     pcf.on('pageerror', e => errs.push(e.message));
-    await pcf.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pcf.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pcf.setInputFiles('#fileIn', [{ name: 'cf.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Commune;Nb\nFlandre;Anvers;10\nWallonie;Liège;8\n') }]); await pcf.waitForTimeout(700);
     const hiddenL2 = await pcf.isHidden('#btnCfgPc');
     await vact(pcf, 'dash'); await pcf.waitForTimeout(400);
@@ -438,7 +438,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
     A(hiddenL2 && shownDash && popDash && closed && swap && popFocus && (await pcf.$('#btnSrc')) === null, 'PC : « ⚙ Configurer » (absent quand le panneau de gauche est affiché) ouvre fichiers, champs et zones en panneau flottant en tableau de bord et en mode agrandi ; Échap le ferme');
     await ctxP.close(); }
   // Assistant « Projet » : étapes, hiérarchies (détection, édition), filtres en cascade, mémorisation
-  { const H = require('../outils/pivot/hier.js');
+  { const H = require('../pivot/hier.js');
     const rows = [{ r: 'F', p: 'A', c: 'a1' }, { r: 'F', p: 'L', c: 'l1' }, { r: 'W', p: 'H', c: 'h1' }, { r: 'W', p: 'Li', c: 'li1' }], dimOf = k => row => row[k];
     const hier = [{ name: 'Géo', levels: ['r', 'p', 'c'] }];
     A(JSON.stringify(H.sanitize([{ name: ' Géo ', levels: ['r', 'p', 'p', 'c'] }, { name: 'géo', levels: ['a', 'b'] }, { name: 'X', levels: ['a'] }, { name: '', levels: ['a', 'b'] }, null])) === JSON.stringify([{ name: 'Géo', levels: ['r', 'p', 'c'] }]), 'hiérarchies : nettoyées (noms uniques, ≥ 2 niveaux, pas de doublon de niveau)');
@@ -452,7 +452,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
 
     const ctxW = await b.newContext({ viewport: { width: 1300, height: 800 } }), pw = await ctxW.newPage();
     pw.on('pageerror', e => errs.push(e.message));
-    await pw.goto(srv.url + '/outils/statbel_pivot.html', { waitUntil: 'load' });
+    await pw.goto(srv.url + '/index.html', { waitUntil: 'load' });
     await pw.setInputFiles('#fileIn', [{ name: 'g.csv', mimeType: 'text/csv', buffer: Buffer.from('Région;Province;Commune;Année;Nb\nFlandre;Anvers;Anvers;2023;10\nFlandre;Limbourg;Hasselt;2024;5\nWallonie;Liège;Liège;2024;8\nWallonie;Hainaut;Mons;2023;3\n') }]); await pw.waitForTimeout(700);
     A(await pw.isHidden('#accSrc') === true && (await pw.$('#accSrc')) === null && (await pw.$('#btnAdd')) === null, 'assistant : plus de section « Sources » dans le panneau de gauche ni de bouton « Ajouter » dans le menu');
     await pw.click('#btnWizTop'); await pw.waitForTimeout(200);
