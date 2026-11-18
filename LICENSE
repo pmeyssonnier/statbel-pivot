@@ -1,0 +1,15 @@
+Copyright (c) 2026 pmeyssonnier. Tous droits réservés.
+
+Ce logiciel et sa documentation sont la propriété de leur auteur. Sauf
+autorisation écrite préalable du titulaire des droits, il est interdit de les
+copier, modifier, distribuer, publier ou concéder en sous-licence, en tout ou
+en partie.
+
+LE LOGICIEL EST FOURNI « EN L'ÉTAT », SANS GARANTIE D'AUCUNE SORTE, EXPRESSE
+OU IMPLICITE. EN AUCUN CAS L'AUTEUR NE POURRA ÊTRE TENU RESPONSABLE D'UN
+DOMMAGE DÉCOULANT DE SON UTILISATION.
+
+Composants tiers : le dossier vendor/ contient des bibliothèques et des données
+appartenant à leurs auteurs respectifs (SheetJS dans vendor/xlsx, sources des
+fonds de carte décrites dans vendor/geo/README.md). Ils restent soumis à leurs
+propres licences, que le présent fichier ne modifie pas.

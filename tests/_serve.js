@@ -1,11 +1,8 @@
 /*
  * Petit serveur de fichiers statiques pour les tests headless.
  *
- * `index.html` charge désormais `js/app.js` comme module ES (`<script
- * type="module">`). Or les navigateurs refusent les modules servis en
- * `file://` (politique CORS) : les tests doivent donc passer par http(s).
- * Ce serveur sert la racine du dépôt sur un port éphémère, au plus proche
- * des conditions réelles (l'app est de toute façon servie via Pages/PWA).
+ * Les suites chargent la page par http, au plus proche des conditions réelles (Vercel) :
+ * ce serveur sert la racine du dépôt (ou un autre dossier) sur un port éphémère.
  *
  * Usage :
  *   const { serve } = require('./_serve');

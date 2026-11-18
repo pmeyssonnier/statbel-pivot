@@ -1,5 +1,5 @@
 node_modules/
-dist-pivot/
+dist/
 .vercel/
 *.log
 # Aucune donnée personnelle versionnée : fichiers Excel / CSV d'essai exclus
