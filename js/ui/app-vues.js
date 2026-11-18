@@ -1,4 +1,4 @@
-/* js/app-vues.js — Interface du tableau croisé (index.html) : Vues (onglets), tableau de bord (tuiles, impression) et sélecteurs d'une vue.
+/* js/ui/app-vues.js — Interface du tableau croisé (index.html) : Vues (onglets), tableau de bord (tuiles, impression) et sélecteurs d'une vue.
  * Script CLASSIQUE (file://) : les déclarations sont GLOBALES et partagées avec les autres fichiers app*.js (ordre de chargement :
  * voir le chargeur de la page et docs/ARCHITECTURE.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
  * chargement ; tout ce qui s'exécute au démarrage est dans les fichiers app-init-*.js (chargés en dernier, dans l'ordre). */

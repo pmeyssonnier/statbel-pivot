@@ -6,7 +6,7 @@
  * ORIGINE qu'Interviews (même localStorage / IndexedDB, donc les contacts). Un second projet Vercel, sur une autre adresse, l'isole.
  *
  * Sortie : dist/ (ou --out <dossier>), avec la MÊME arborescence relative que le dépôt (la page lit `vendor/…`, `css/…` et `js/…`) :
- *   index.html (la page de l'outil, seul point d'entrée), robots.txt (aucune indexation), css/*.css, js/*.js,
+ *   index.html (la page de l'outil, seul point d'entrée), robots.txt (aucune indexation), css/*.css, les .js de js/ (sous-dossiers compris),
  *   vendor/xlsx/xlsx.full.min.js, vendor/geo/geo-data.js.   Aucun service worker, aucun fichier des applications.
  *
  * Usage :  node build.js [--out <dossier>]      (Vercel : Build Command, Output Directory = dist)
@@ -20,7 +20,7 @@ const i = process.argv.indexOf('--out');
 const OUT = path.resolve(i > 0 && process.argv[i + 1] ? process.argv[i + 1] : path.join(ROOT, 'dist'));
 
 const FICHIERS = ['index.html', 'vendor/xlsx/xlsx.full.min.js', 'vendor/geo/geo-data.js'];
-const DOSSIERS = [['css', f => f.endsWith('.css')], ['js', f => f.endsWith('.js')]];   // feuille de style et modules de l'outil
+const DOSSIERS = [['css', f => f.endsWith('.css')], ['js', f => f.endsWith('.js')]];   // feuille de style et modules de l'outil (sous-dossiers compris)
 
 function copier(rel) {
   const src = path.join(ROOT, rel);
@@ -36,7 +36,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 let n = 0, octets = 0;
 FICHIERS.forEach(f => { octets += copier(f); n++; });
-DOSSIERS.forEach(([dir, garde]) => fs.readdirSync(path.join(ROOT, dir)).filter(garde).sort().forEach(f => { octets += copier(dir + '/' + f); n++; }));
+DOSSIERS.forEach(([dir, garde]) => fs.readdirSync(path.join(ROOT, dir), { recursive: true }).map(f => f.split(path.sep).join('/')).filter(garde).sort().forEach(f => { octets += copier(dir + '/' + f); n++; }));
 
 fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 

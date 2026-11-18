@@ -9,7 +9,7 @@
  * Fonctions pures + stockage ; exposé : globalThis.PivotCalc / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const STORE = 'statbel_pivot_calcs', MAX_CALCS = 50, MAX_NAME = 60, MAX_FORMULA = 500;
   const BAD = new Set(['__proto__', 'constructor', 'prototype']);
   const FUNCS = { ABS: [1, 1], SQRT: [1, 1], ROUND: [1, 2], MIN: [1, 20], MAX: [1, 20], SI: [3, 3], IF: [3, 3] };

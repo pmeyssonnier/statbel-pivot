@@ -4,7 +4,7 @@
  * Exposé : globalThis.PivotGeo / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const norm = E.normName;
   // groupes de noms équivalents (français / néerlandais / anglais) pour les communes belges : un seul doit exister dans les données
   const SAME = [

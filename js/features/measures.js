@@ -8,7 +8,7 @@
  * Fonctions pures + stockage local. Exposé : globalThis.PivotMeasures / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const STORE = 'statbel_pivot_measures', MAX_DEFS = 40, MAX_NAME = 60, MAX_CONDS = 6, MAX_V = 500;
   const BAD = new Set(['__proto__', 'constructor', 'prototype']);
   const OPS = { in: 'est l\'une de', notin: 'n\'est aucune de', eq: '=', gt: '>', gte: '≥', lt: '<', lte: '≤', contains: 'contient', notcontains: 'ne contient pas' };

@@ -6,8 +6,8 @@
  * Lancer :  CHROMIUM_PATH=… node tests/moteur.test.js
  */
 const path = require('path'), fs = require('fs');
-const E = require('../js/engine.js');
-const PF = require('../js/format.js');
+const E = require('../js/core/engine.js');
+const PF = require('../js/core/format.js');
 const XLSX = require('../vendor/xlsx/xlsx.full.min.js');
 let fails = 0;
 const A = (cond, msg) => { if (!cond) { fails++; console.log('✗ FAIL ' + msg); } else console.log('✓ ' + msg); };
@@ -49,7 +49,7 @@ A(PF.buildStyler('scale3', [[1, 1, 1]])(1, 0) === '', 'colonne constante : pas d
 A(PF.buildStyler('bars', [[0, 10]])(5, 0).includes('50%') && PF.buildStyler('none', [[1]])(1, 0) === '', 'barres de données 50 % ; aucune mise en forme');
 
 // Session mémorisée : validation de ce qui est relu d'IndexedDB (parties pures)
-const SSM = require('../js/session.js');
+const SSM = require('../js/features/session.js');
 // Top N + « Autres » : classement par valeur, regroupement du reste, détail cohérent
 const tnA = [['Commune', 'Année', 'Nb']];
 [['A', 50], ['B', 40], ['C', 30], ['D', 20], ['E', 10], ['F', 5]].forEach(([c, v]) => { tnA.push([c, '2023', v]); tnA.push([c, '2024', v]); });
@@ -69,12 +69,12 @@ A(E.drill(tnU.rows, tnC, tnL({ n: 2, k: 0, mode: 'top', others: false }), ['A'],
 // Renommage d'une valeur (champ calculé) : titre personnalisé, dispositions, nettoyage
 const rnL = name => ({ rows: [tnK('Commune')], cols: [], vals: [{ key: tnK('Nb'), agg: 'sum', name }], filters: {}, sort: null });
 A(E.compute(tnU.rows, tnC, rnL('Établissements')).specs[0].label === 'Établissements' && E.compute(tnU.rows, tnC, rnL('  ')).specs[0].label === 'Somme de Nb' && E.compute(tnU.rows, tnC, rnL(undefined)).specs[0].label === 'Somme de Nb', 'valeur renommée : titre personnalisé, vide → nom par défaut');
-const rnLay = require('../js/layouts.js');
+const rnLay = require('../js/features/layouts.js');
 const rnS = rnLay.sanitize(rnLay.serialize(rnL('Mon \u0007titre'), {}));
 A(rnS.vals[0].name === 'Mon  titre' && rnLay.sanitize(rnLay.serialize(rnL('x'.repeat(200)), {})).vals[0].name.length === 80 && rnLay.sanitize(rnLay.serialize(rnL(''), {})).vals[0].name === undefined && rnLay.apply(rnS, [tnK('Commune'), tnK('Nb')]).L.vals[0].name === 'Mon  titre', 'valeur renommée : conservée dans les dispositions, nettoyée et bornée');
 
 // Champs calculés : formule sur les sommes de chaque cellule (vrai ratio à tous les niveaux)
-const PCA = require('../js/calc.js');
+const PCA = require('../js/features/calc.js');
 const cA = [['Commune', 'Province', 'Établissements', 'Habitants']];
 [['A', 'P1', 10, 1000], ['A', 'P1', 5, 500], ['B', 'P1', 2, 100], ['C', 'P2', 9, 0], ['D', 'P2', 1, 200]].forEach(r => cA.push(r));
 const cU = E.unify([{ id: 'x', label: 'f', headerRow: 0, aoa: cA }], {}), cC0 = E.buildCatalog(cU.fields), cK = l => cC0.find(c => c.label === l).key;
@@ -108,7 +108,7 @@ A(fTot(fG({ [kCom]: { top: { n: 2, mode: 'top', by: kEt, agg: 'sum' } } }, { [kC
 const fL = { rows: [kPro], cols: [], vals: [{ key: kEt, agg: 'sum' }], filters: {}, rules: { [kCom]: { top: { n: 2, mode: 'top', by: kEt, agg: 'sum' } } }, sort: null };
 const fR = E.compute(cU.rows, cCat, fL);
 A(fR.rows.find(r => r.labels[0] === 'P1').tot[0] === 15 && fR.rows.find(r => r.labels[0] === 'P2').tot[0] === 9 && E.drill(cU.rows, cCat, fL, ['P1'], null).length === 2 && E.drill(cU.rows, cCat, fL, ['P2'], null).length === 1, 'filtre top : le détail d\'une cellule respecte les règles (P1 → 2 lignes, P2 → 1)');
-const fPL = require('../js/layouts.js');
+const fPL = require('../js/features/layouts.js');
 const fClean = fPL.cleanRules({ [kCom]: { text: { op: 'regex', q: 'x' }, range: { min: 'x', max: 5 }, top: { n: 0, by: kEt } }, __proto__x: 5, [kEt]: { text: { op: 'contains', q: ' an ' }, range: { min: 3, max: '2024-01-01' }, top: { n: 5, mode: 'flop', by: kHab, agg: 'median' } }, bad: { text: { op: 'contains', q: 'x'.repeat(300) } } });
 A(fClean[kCom] === undefined || (fClean[kCom].text === undefined && fClean[kCom].top === undefined), 'règles : opérateur inconnu et top invalide écartés') ;
 A(fClean[kEt].text.q === 'an' && fClean[kEt].range.min === 3 && fClean[kEt].range.max === undefined && fClean[kEt].top.agg === 'sum' && fClean[kEt].top.mode === 'flop' && fClean.bad === undefined, 'règles : nettoyées (texte rogné, min/max de même nature, agrégat inconnu → somme, texte trop long écarté)');
@@ -117,7 +117,7 @@ const fAp = fPL.apply(fRound, [kPro, kCom, kEt]), fAp2 = fPL.apply(fRound, [kPro
 A(fRound.rules[kCom].top.n === 2 && fAp.L.rules[kCom].top.by === kEt && fAp2.L.rules[kCom] === undefined, 'règles : conservées dans les dispositions ; le top est abandonné si son champ de classement a disparu');
 
 // Jointures entre fichiers
-const PJN = require('../js/join.js');
+const PJN = require('../js/features/join.js');
 const jL = { aoa: [['Code', 'Commune', 'Nb'], ['01001', 'Liège', 10], [2000, 'Anvers', 20], ['3000', 'GAND', 30], [4000, 'Namur', 40], [null, 'Sans code', 50]], headerRow: 0 };
 const jR = { aoa: [['NIS', 'Province', 'Commune'], [1001, 'Liège (prov)', 'x'], ['2000', 'Anvers (prov)', 'y'], ['2000', 'Doublon', 'z'], [3000, 'Flandre or.', 'w']], headerRow: 0 };
 const jB = (o) => PJN.build(Object.assign({ keys: [['Code', 'NIS']], type: 'left', dup: 'first', cols: null }, o), jL, jR);
@@ -134,7 +134,7 @@ const jS = PJN.sanitizeDefs([{ id: 'j1', name: 'A', left: 's1', right: 's2', key
 A(jS.length === 1 && jS[0].keys.length === 3 && jS[0].type === 'left' && jS[0].dup === 'all' && jS[0].cols.join() === 'p' && jS[0].use === false, 'jointure : définitions relues nettoyées (identifiants, clés ≤ 3, type inconnu → gauche, noms dangereux et doublons écartés)');
 
 // Aperçu et contrôle qualité
-const PQL = require('../js/quality.js');
+const PQL = require('../js/features/quality.js');
 const qA = [['Commune', 'Nb', 'Jour', 'Note']];
 const qRows = [['Anvers', 10, '01/02/2024', 'x'], ['Anvers', 12, '02/02/2024', 'x'], ['ANVERS', 11, '03/02/2024', 'x'], ['Liège', 9, '04/02/2024', 'x'], ['Liege', 10, '05/02/2024', 'x'], ['Gand', 'n.d.', '06/02/2024', 'x'], ['Gand', 11, 'pas une date', 'x'], ['Mons', 10, '08/02/2024', 'x'], ['Mons', 1000, '09/02/2024', 'x'], ['Boom  Ville', 10, '10/02/2024', 'x'], [null, null, null, 'x']];
 qA.push(...qRows, ['Anvers', 10, '01/02/2024', 'x']);
@@ -149,7 +149,7 @@ const qE = PQL.profile([['s', null, 1], ['s', null, 2]], [{ key: '__source', lab
 A(qE.issues.some(i => /entièrement vide/.test(i.text)) && PQL.profile([], [{ key: '__source', label: 'Source', type: 'text', sources: new Set() }], {}).issues.length === 0, 'qualité : champ entièrement vide signalé ; données vides sans erreur');
 
 // Localisation hors-ligne (carte à bulles)
-const PGEO = require('../js/geo.js'); PGEO.use(require('../vendor/geo/geo-data.js'));
+const PGEO = require('../js/features/geo.js'); PGEO.use(require('../vendor/geo/geo-data.js'));
 const gl = (l, h) => PGEO.locate(l, h);
 A(gl('Anvers').name === 'Antwerpen' && gl('Gand').name === 'Gent' && gl('Bruxelles').name === 'Brussels' && gl('Liège').kind === 'commune' && gl('11001').kind === 'commune (NIS)' && gl('11001').name === 'Aartselaar' && Math.abs(gl('Bruges').lat - 51.21) < 0.05, 'géo : communes belges par nom français ou néerlandais, et par code NIS');
 A(gl('Belgique').kind === 'pays' && gl('Germany').name === 'Allemagne' && gl('NL').name === 'Pays-Bas' && gl('FRA').name === 'France' && gl('Luxembourg').kind === 'pays' && gl('Province de Luxembourg').kind === 'province' && gl('Paris').kind === 'ville' && gl('Londres').kind === 'ville', 'géo : pays (noms fr/nl/en/de, codes ISO), « Luxembourg » = pays sauf « Province de … », grandes villes');
@@ -157,11 +157,11 @@ A(gl('Liège', 'Province').kind === 'province' && gl('Liège', 'Commune').kind =
 A(gl('Inconnuville') === null && gl('') === null && gl(null) === null, 'géo : lieu inconnu ou vide → non localisé');
 
 // Nouveaux graphiques : anneau, aires, treemap, nuage de points, KPI, jauges, carte
-const PCM = require('../js/chart-more.js');
+const PCM = require('../js/features/chart-more.js');
 const mkRes2 = (K, labels, cols) => ({ K, specs: Array.from({ length: K }, (_, k) => ({ label: ['Étab.', 'Habitants', 'Latitude (moy.)', 'Longitude (moy.)'][k], agg: 'sum' })), rowDims: Array.isArray(labels[0]) ? ['Région', 'Commune'] : ['Commune'], colDims: cols ? ['Année'] : [], cols: (cols || ['']).map((c, j) => ({ labels: cols ? [c] : [], key: 'c' + j })),
   rows: labels.map((l, i) => ({ labels: Array.isArray(l) ? l : [l], cells: (cols || ['']).flatMap((_, j) => Array.from({ length: K }, (_, k) => (k === 0 ? (i + 1) * 10 + j * 3 : k === 1 ? (i + 1) * 100 + i * i * 7 + j : [50.8, 4.4][k - 2] + i * 0.1))), tot: Array.from({ length: K }, (_, k) => (k === 0 ? (i + 1) * 10 * (cols || ['']).length : k === 1 ? (i + 1) * 100 + i * i * 7 : [50.8, 4.4][k - 2] + i * 0.1)) })),
   bottom: (cols || ['']).flatMap((_, j) => Array.from({ length: K }, (_, k) => 100 + j * 20 + k)), grand: Array.from({ length: K }, (_, k) => 1000 + k) });
-const bld = (res, o) => require('../js/chart.js').build(res, Object.assign({ fmt: v => String(Math.round(v * 100) / 100), k: 0 }, o));
+const bld = (res, o) => require('../js/features/chart.js').build(res, Object.assign({ fmt: v => String(Math.round(v * 100) / 100), k: 0 }, o));
 const dn = bld(mkRes2(1, ['A', 'B', 'C', 'D']), { type: 'donut' }), pi = bld(mkRes2(1, ['A', 'B', 'C', 'D']), { type: 'pie' });
 A(/<path[^>]*fill-rule|<path d="M[\d.]+,[\d.]+ A/.test(dn.svg) && />Total</.test(dn.svg) && (dn.svg.match(/<path /g) || []).length === 4 && !/>Total</.test(pi.svg), 'anneau : 4 secteurs évidés avec le total au centre (le camembert n\'en a pas)');
 const ar = bld(mkRes2(1, ['A', 'B', 'C', 'D'], ['2023', '2024']), { type: 'area' }), sa = bld(mkRes2(1, ['A', 'B', 'C', 'D'], ['2023', '2024']), { type: 'sarea' });
@@ -188,22 +188,22 @@ A((mpL.svg.match(/<circle /g) || []).length === 5 && /3 lieu\(x\) placé\(s\)/.t
 A(bld(mkRes2(1, ['Zzz', 'Yyy']), { type: 'map', geo: geoOn }).note.includes('Aucun lieu reconnu'), 'carte : aucun lieu reconnu → message d\'aide');
 
 // Graphiques : options (étiquettes, légende, palette…), colonnes 100 %, combiné, pyramide, KPI en cartes
-const Axis2 = require('../js/chart-axis.js');
+const Axis2 = require('../js/features/chart-axis.js');
 A(Axis2.scaleOf(0, 100, { step: 25 }).tk.includes(25), 'axes : intervalle manuel');
 A(Axis2.scaleOf(1, 1000, { scale: 'log' }).tk.includes(10) && Math.abs(Axis2.scaleOf(1, 1000, { scale: 'log' }).ratio(10) - 1/3) < 1e-9, 'axes : logarithme base 10');
 A(!!Axis2.scaleOf(0, 100, { scale: 'log' }).invalid, 'axes : logarithme interdit pour zéro');
-const Trend = require('../js/chart-trend.js');
+const Trend = require('../js/features/chart-trend.js');
 A(Trend.movingAverage([1,null,3,4],2).every((v,i)=>i===3?v===3.5:v===null),'tendance : moyenne mobile et valeurs manquantes');
 A(Trend.polynomial([{x:0,y:4},{x:1,y:4},{x:2,y:4}],1).r2===null,'tendance : R² non défini pour série constante');
 A(Trend.equation(Trend.polynomial([{x:1,y:3},{x:2,y:5},{x:3,y:7}],1)).includes('y ='),'tendance : équation de régression');
-A(Number.isNaN(require('../js/chart-axis.js').scaleOf(1,100,{scale:'log'}).ratio(0)),'axe logarithmique : zéro non projetable');
+A(Number.isNaN(require('../js/features/chart-axis.js').scaleOf(1,100,{scale:'log'}).ratio(0)),'axe logarithmique : zéro non projetable');
 const fitLinear=Trend.polynomial([{x:1,y:3},{x:2,y:5},{x:3,y:7}],1);
 A(fitLinear && Math.abs(fitLinear.predict(4)-9)<1e-8 && Math.abs(fitLinear.r2-1)<1e-8,'tendance : régression linéaire exacte');
 const fitQuadratic=Trend.polynomial([0,1,2,3].map(x=>({x,y:x*x+2})),2);
 A(fitQuadratic && Math.abs(fitQuadratic.predict(4)-18)<1e-7,'tendance : polynôme degré 2');
 A(Trend.polynomial([{x:1,y:2},{x:1,y:3}],1)===null,'tendance : abscisses constantes');
 A(Trend.movingAverage([1,2,3,4],3).join()===',,2,3','tendance : moyenne mobile');
-const PCh = require('../js/chart.js');
+const PCh = require('../js/features/chart.js');
 const no0 = PCh.normOpts({ lab: 'x', pal: 'constructor', ymin: 'abc', ref: '5', leg: 'right', title: 7, grid: false });
 A(no0.lab === 'none' && no0.pal === 'std' && no0.ymin === null && no0.ref === 5 && no0.leg === 'right' && no0.title === '' && no0.grid === false && PCh.normOpts(null).smooth === false && PCh.normOpts({ ymax: '' }).ymax === null, 'graphique : options relues toujours nettoyées (valeurs invalides → défauts)');
 const txt = r => r.svg.replace(/<title>[^<]*<\/title>/g, '').replace(/<[^>]+>/g, ' ');
@@ -238,7 +238,7 @@ const g0 = bld(mkRes2(1, ['A', 'B', 'C']), { type: 'bar' }), g1 = bld(mkRes2(1, 
 A(/stroke="#d9e1e8"/.test(g0.svg) && !/stroke="#d9e1e8"/.test(g1.svg) && /Repère 15/.test(g1.svg) && /Mon titre/.test(g1.svg) && !/Étab\. par/.test(g1.svg) && /#e6194b/.test(g1.svg) && />50</.test(g1.svg), 'graphique : quadrillage masquable, repère, titre, palette, bornes d\'axe');
 const lg0 = bld(mkRes2(1, ['A', 'B'], ['2023', '2024']), { type: 'bar' }), lgN = bld(mkRes2(1, ['A', 'B'], ['2023', '2024']), { type: 'bar', o: { leg: 'none' } }), lgR = bld(mkRes2(1, ['A', 'B'], ['2023', '2024']), { type: 'bar', o: { leg: 'right' } }), lgT = bld(mkRes2(1, ['A', 'B'], ['2023', '2024']), { type: 'bar', o: { leg: 'top' } });
 A(/rx="2"/.test(lg0.svg) && !/rx="2"/.test(lgN.svg) && /rx="2"/.test(lgR.svg) && /rx="2"/.test(lgT.svg) && lgN.h < lg0.h, 'graphique : légende en bas / en haut / à droite / masquée');
-A(typeof require('../js/chart-cartesian.js').cartesian === 'function', 'graphique : moteur cartésien isolé et chargeable');
+A(typeof require('../js/features/chart-cartesian.js').cartesian === 'function', 'graphique : moteur cartésien isolé et chargeable');
 const sm = bld(mkRes2(1, ['A', 'B', 'C', 'D']), { type: 'line', o: { smooth: true } });
 A(/ C[\d.-]+,[\d.-]+ /.test(sm.svg) && !/<polyline(?![^>]*stroke-dasharray)/.test(sm.svg) && /<polyline(?![^>]*stroke-dasharray)/.test(bld(mkRes2(1, ['A', 'B', 'C', 'D']), { type: 'line' }).svg), 'lignes : lissage optionnel');
 const cb = bld(mkRes2(2, ['A', 'B', 'C']), { type: 'combo', o: { lab: 'value' } }), cb1 = bld(mkRes2(1, ['A', 'B', 'C']), { type: 'combo' });
@@ -251,7 +251,7 @@ const kc = bld(mkRes2(1, ['A', 'B'], ['H', 'F']), { type: 'kpi', o: { kpi: 'col'
 A((kc.svg.match(/letter-spacing/g) || []).length === 2 && /% du total/.test(kc.svg) && /ÉTAB\./.test(kp0.svg) && /letter-spacing/.test(kp0.svg), 'KPI : cartes (libellé en capitales sous la valeur) ; mode une carte par colonne avec part du total');
 
 // Groupes de valeurs : regroupement manuel de valeurs et tranches numériques
-const PGr = require('../js/groups.js');
+const PGr = require('../js/features/groups.js');
 const gA = [['Etat', 'Age', 'Nb']];
 [['Single', 17, 1], ['Married', 18, 1], ['Divorced', 24, 1], ['Separated', 25, 1], ['Widowed', 80, 1], ['Single', null, 1], ['Other', 34, 1]].forEach(r => gA.push(r));
 const gU = E.unify([{ id: 'x', label: 'f', headerRow: 0, aoa: gA }], {}), gC = E.buildCatalog(gU.fields), gK = l => gC.find(c => c.label === l).key;
@@ -292,7 +292,7 @@ const rows5 = ['A', 'B', 'C', 'D', 'E'], dashed = r => /stroke-dasharray="7 4"/.
 A(PCh.normOpts().trend === 'auto' && !dashed(bld(mkRes2(1, rows5), { type: 'line' })) && dashed(bld(mkRes2(1, rows5), { type: 'line', o: { trend: 'linear' } })) && !dashed(bld(mkRes2(1, rows5), { type: 'line', o: { trend: 'none' } })), 'courbes : aucune tendance par défaut (seulement si elle est choisie)');
 const scT = o => bld(mkRes2(2, rows5), { type: 'scatter', k: 0, k2: 1, o });
 A(/linéaire/.test(scT({}).note) && scT({ trend: 'none' }).note.indexOf('Tendance') < 0 && /polynomiale/.test(scT({ trend: 'poly2' }).note) && /z = /.test(scT({ trend: 'poly2', trendEquation: true }).note) && !/z = /.test(scT({ trend: 'poly2' }).note), 'nuage de points : le choix de tendance du panneau (aucune, polynôme, équation) est bien appliqué');
-A(typeof require('../js/chart-axis.js').scaleOf(NaN, NaN, {}).ratio === 'function', 'axes : l\'échelle de repli fournit aussi ratio()');
+A(typeof require('../js/features/chart-axis.js').scaleOf(NaN, NaN, {}).ratio === 'function', 'axes : l\'échelle de repli fournit aussi ratio()');
 const dollar = bld(mkRes2(1, rows5), { type: 'bar', o: { title: 'Prix $& total $\' fin', talign: 'center' } }), dollarPie = bld(mkRes2(1, rows5), { type: 'pie', o: { title: 'Part $& du total' } });
 // Configuration de graphique d'une vue : nettoyée à l'entrée (session, projet, import) et à l'usage
 const ncOk = PCh.normChart({ type: 'donut', k: 1, k2: 0, gmax: 50, pos: 'right', o: { lab: 'pct', hole: 40 } }), ncBad = PCh.normChart({ type: '__proto__', k: -3, k2: 99, gmax: -1, pos: 'x', o: 'zzz' }), ncTs = PCh.normChart({ type: 'toString' });
@@ -376,12 +376,12 @@ A(capE.trend === 'auto' && capE.scale === 'linear' && capE.hole === 58 && capE.b
   A(zmBad.length === 0, 'secteurs / anneau : le zoom agrandit au-delà de 100 % et reste effectif dans une tuile (rayon strictement croissant de 50 à 125 %)' + (zmBad.length ? ' — ' + zmBad.join(' ; ') : ''));
   A(zmRad('pie', 760, 100) === 175 && zmRad('pie', 560, 100) === 150 && zmRad('pie', 760, 70) === 123 && zmRad('pie', 373, 200) <= Math.floor((373 - 24) / 2), 'secteurs / anneau : taille à 100 % inchangée ; le disque ne dépasse jamais la largeur du graphique'); }
 // Jalons de version : numérotation rétroactive, dernière entrée = PIVOT_VERSION, ordre strictement décroissant
-{ const cl = fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8'), vs = [...cl.matchAll(/^- \*\*Pivot (\d+)\.(\d+)\.(\d+)\*\* \(/gm)].map(m => m.slice(1).map(Number)), cur = fs.readFileSync(path.join(__dirname, '../js/app.js'), 'utf8').match(/PIVOT_VERSION = '([\d.]+)'/)[1];
+{ const cl = fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8'), vs = [...cl.matchAll(/^- \*\*Pivot (\d+)\.(\d+)\.(\d+)\*\* \(/gm)].map(m => m.slice(1).map(Number)), cur = fs.readFileSync(path.join(__dirname, '../js/ui/app.js'), 'utf8').match(/PIVOT_VERSION = '([\d.]+)'/)[1];
   A(vs.length >= 9 && vs[0].join('.') === cur && vs[vs.length - 1].join('.') === '0.1.0' && vs.every((v, k) => !k || vs[k - 1][0] > v[0] || (vs[k - 1][0] === v[0] && (vs[k - 1][1] > v[1] || (vs[k - 1][1] === v[1] && vs[k - 1][2] > v[2])))), 'versions : jalons 0.1.0 → ' + cur + ' du CHANGELOG en ordre décroissant, le plus récent = PIVOT_VERSION'); }
 A(dollar.svg.includes('Prix $&amp; total $&#39; fin') && dollarPie.svg.includes('Part $&amp; du total'), 'titre : les motifs spéciaux « $& » / « $\' » sont conservés tels quels');
 
 // Mesures : indicateurs nommés avec condition
-const PMs = require('../js/measures.js');
+const PMs = require('../js/features/measures.js');
 const mDefs = PMs.sanitizeDefs([
   { name: 'Nb célibataires et mariés', kind: 'count', conds: [{ key: gK('Etat'), op: 'in', v: 'single; married' }] },
   { name: '% 25 ans et plus', kind: 'pct', conds: [{ key: gK('Age'), op: 'gte', v: '25' }] },
@@ -413,12 +413,12 @@ const lyL = fPL.sanitize(fPL.serialize({ rows: [], cols: [], vals: [], filters: 
 A(lyL.opts.mode === 'list' && lyL.opts.listCols.join() === kCom + ',' + kEt && lyL.opts.listSort.key === kEt && lyL.opts.listSort.dir === -1 && fPL.sanitize(fPL.serialize({ rows: [], cols: [], vals: [], filters: {} }, { mode: 'bidon' })).opts.mode === undefined, 'liste : mode, colonnes et tri conservés dans les dispositions (valeurs invalides écartées)');
 
 // Graphiques : SVG pur généré depuis un résultat de tableau croisé
-const AX = require('../js/chart-axis.js');
+const AX = require('../js/features/chart-axis.js');
 A(AX.ticks(0,97).join() === '0,20,40,60,80,100', 'axes : graduations existantes');
 A(AX.scaleOf(0,100,{ymin:20,ymax:80}).span === 60, 'axes : bornes explicites');
 A(AX.scaleOf(0,100,{ymin:90,ymax:20}).span > 0, 'axes : bornes inversées');
 A(AX.ticks(NaN,20).length === 0 && AX.scaleOf(NaN,20,{}).span === 1, 'axes : données invalides');
-const PCH = require('../js/chart.js');
+const PCH = require('../js/features/chart.js');
 const fakeRes = (nr, nc) => ({ K: 1, specs: [{ label: 'Total <b>', agg: 'sum' }], rowDims: ['Commune'], colDims: nc ? ['Année'] : [], cols: Array.from({ length: nc || 1 }, (_, j) => ({ labels: nc ? ['20' + (20 + j)] : [], key: 'c' + j })), rows: Array.from({ length: nr }, (_, i) => ({ labels: ['Ville <' + i + '>'], cells: Array.from({ length: nc || 1 }, (_, j) => (i === 2 && j === 0 ? null : (i + 1) * 10 - j * 3)), tot: [(i + 1) * 10] })), bottom: [], grand: [0] });
 const chFmt = v => String(v);
 const chOk = ['bar', 'hbar', 'stack', 'line', 'pie'].every(t => [fakeRes(5, 0), fakeRes(5, 3)].every(r => { const o = PCH.build(r, { type: t, k: 0, fmt: chFmt }); return /^<svg [^>]*viewBox/.test(o.svg) && o.svg.endsWith('</svg>') && o.h > 100; }));
@@ -450,7 +450,7 @@ const ssSrc = SSM.assemble(ssData, SSM.sanitizeState({ v: 1, sources: [{ id: 's1
 A(ssSrc.length === 1 && ssSrc[0].id === 's1' && ssSrc[0].headerRow === 1 && ssSrc[0].aoa.length === 2 && SSM.assemble(null, ssState).length === 0, 'session : sources sans données valides écartées, ligne d\'en-tête bornée');
 
 // Dispositions enregistrées : sérialisation, validation, application, stockage
-const PL = require('../js/layouts.js');
+const PL = require('../js/features/layouts.js');
 const ly_memStore = () => { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, raw: m }; };
 const ly_L0 = { rows: ['f:commune', 'f:province'], cols: ['f:trimestre'], vals: [{ key: 'f:n', agg: 'avg', fmt: 'eur' }, { key: '__rows', agg: 'sum' }], filters: { 'f:commune': new Set(['Anvers', 'Boom']), 'f:vide': new Set() }, rowDir: { 'f:commune': -1 }, sort: { col: '__tot', k: 0, dir: -1 } };
 const ly_O0 = { rowTot: true, colTot: false, subTot: true, freeze: false, wrap: true, style: 'statbel', density: 'compact', colw: 'l', cf: 'rule', cfOp: '>=', cfVal: '12,5', dec: '2' };
@@ -473,7 +473,7 @@ const ly_broken = { getItem: () => { throw new Error('refusé'); }, setItem: () 
 A(Object.keys(PL.loadAll(ly_bad)).length === 0 && Object.keys(PL.loadAll(ly_broken)).length === 0 && PL.save(ly_broken, 'x', PL.serialize(ly_L0, ly_O0)).ok === false, 'stockage corrompu / indisponible / plein : pas d\'exception');
 
 // Export XLSX mis en forme (classeur OOXML écrit à la main)
-const PXL = require('../js/xlsx.js');
+const PXL = require('../js/core/xlsx.js');
 function unzipStore(buf) {   // lecteur minimal de ZIP « stocké » : { nom: texte }
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength), out = {};
   let eocd = buf.length - 22; while (eocd >= 0 && dv.getUint32(eocd, true) !== 0x06054b50) eocd--;
@@ -570,11 +570,11 @@ const largeRes = E.compute(large.rows, largeCat, {rows:[largeCat.find(x=>x.label
 A(largeRes.rows.length===200 && largeRes.grand[0]===100000,'charge 100k lignes et 200 groupes');
 
 // Import CSV : encodages UTF-8, Windows-1252 et UTF-16 avec BOM.
-const PI = require('../js/import.js');
+const PI = require('../js/core/import.js');
 const utf16 = Buffer.from([0xff, 0xfe, ...Buffer.from('A;B\n1;2', 'utf16le')]);
 A(PI.decodeText(utf16.buffer.slice(utf16.byteOffset, utf16.byteOffset + utf16.byteLength)).includes('A;B'), 'import UTF-16 LE BOM');
 // Sécurité CSV : aucune formule ne doit être exécutable lors de l'ouverture.
-const PX = require('../js/export.js');
+const PX = require('../js/core/export.js');
 const csvSafe = PX.toCSV([['Libellé', 'Valeur'], ['danger', '=1+1'], ['signe', '+SUM(A1)'], ['espace', '  @cmd'], ['texte', 'a;b"c']]);
 A(csvSafe.startsWith('\ufeff') && csvSafe.includes("'=1+1") && csvSafe.includes("'+SUM(A1)") && csvSafe.includes("'  @cmd") && csvSafe.includes('"a;b""c"'), 'export CSV : formules neutralisées et champs échappés');
 A(PX.toTSV([['A', 'B'], ['x\ny', 1.5]]).includes('x y\t1,5'), 'presse-papiers : tabulation et décimales belges');

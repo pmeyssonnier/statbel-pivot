@@ -1,4 +1,4 @@
-/* js/app-derives.js — Interface du tableau croisé (index.html) : Champs dérivés : champs calculés, groupes de valeurs et mesures.
+/* js/ui/app-derives.js — Interface du tableau croisé (index.html) : Champs dérivés : champs calculés, groupes de valeurs et mesures.
  * Script CLASSIQUE (file://) : les déclarations sont GLOBALES et partagées avec les autres fichiers app*.js (ordre de chargement :
  * voir le chargeur de la page et docs/ARCHITECTURE.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
  * chargement ; tout ce qui s'exécute au démarrage est dans les fichiers app-init-*.js (chargés en dernier, dans l'ordre). */

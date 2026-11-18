@@ -11,7 +11,7 @@ Tableaux croisés dynamiques **100 % locaux** sur fichiers Excel / CSV variés (
 |---|---|
 | `index.html` | Page unique de l'outil (seul point d'entrée) |
 | `css/` | Feuille de style `pivot.css` |
-| `js/` | Modules de l'outil (scripts classiques, chargés dans l'ordre par la page) |
+| `js/` | Modules de l'outil (scripts classiques, chargés dans l'ordre par la page) : `core/` moteur, `features/` fonctionnalités, `ui/` interface |
 | `vendor/` | Bibliothèques vendorisées (SheetJS, fonds de carte) — jamais de CDN |
 | `tests/` | 5 suites headless (`moteur`, `projets`, `site`, `tableau`, `tuiles`) |
 | `tools/` | Scripts mainteneur (lanceur de tests, génération des fonds de carte) |

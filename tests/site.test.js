@@ -16,11 +16,12 @@ const A = (cond, msg) => { if (!cond) { fails++; console.log('✗ FAIL ' + msg);
 (async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pivot-site-'));
   const out = cp.execFileSync('node', [path.join(__dirname, '..', 'build.js'), '--out', dir], { encoding: 'utf8' });
+  const jsDe = d => fs.readdirSync(d, { recursive: true }).map(f => f.split(path.sep).join('/')).filter(f => f.endsWith('.js')).sort();
   const ls = d => fs.readdirSync(path.join(dir, d)).sort();
-  const sources = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')).sort();
+  const sources = jsDe(path.join(__dirname, '..', 'js'));
   const styles = fs.readdirSync(path.join(__dirname, '..', 'css')).filter(f => f.endsWith('.css')).sort();
   A(/Site du pivot/.test(out), 'construction : ' + out.trim());
-  A(JSON.stringify(ls('js')) === JSON.stringify(sources), 'tous les modules du pivot sont copiés (' + sources.length + ')');
+  A(sources.length >= 39 && ls('js').join() === 'core,features,ui' && JSON.stringify(jsDe(path.join(dir, 'js'))) === JSON.stringify(sources), 'tous les modules du pivot sont copiés (' + sources.length + ')');
   A(styles.length > 0 && JSON.stringify(ls('css')) === JSON.stringify(styles), 'toutes les feuilles de style sont copiées (' + styles.join(', ') + ')');
   A(fs.existsSync(path.join(dir, 'index.html')) && fs.existsSync(path.join(dir, 'robots.txt')) && /Disallow: \//.test(fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8')), 'index.html (page de l\'outil) et robots.txt (aucune indexation)');
   A(fs.existsSync(path.join(dir, 'vendor/xlsx/xlsx.full.min.js')) && fs.existsSync(path.join(dir, 'vendor/geo/geo-data.js')), 'SheetJS et fonds de carte présents');

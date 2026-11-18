@@ -3,7 +3,7 @@
  * Fonctions pures (testables sous Node) ; exposé : globalThis.PivotQuality / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const DISTINCT_CAP = 20000, SAMPLES = 4;
 
   const quant = (s, q) => { const p = (s.length - 1) * q, i = Math.floor(p), f = p - i; return i + 1 < s.length ? s[i] * (1 - f) + s[i + 1] * f : s[i]; };

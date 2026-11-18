@@ -8,7 +8,7 @@
  * Exposé : globalThis.PivotGroups / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const STORE = 'statbel_pivot_groups', MAX_DEFS = 30, MAX_NAME = 60, MAX_GROUPS = 60, MAX_VALUES = 3000, MAX_BREAKS = 60, MAX_DISTINCT = 2000;
   const BAD = new Set(['__proto__', 'constructor', 'prototype']);
   const collator = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });

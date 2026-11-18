@@ -5,7 +5,7 @@
  * Fonctions pures (testables sous Node) ; exposé : globalThis.PivotJoin / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
   const MAX_JOINS = 20, MAX_KEYS = 3, BAD = new Set(['__proto__', 'constructor', 'prototype']);
   const TYPES = ['left', 'inner'], DUPS = ['first', 'all'];
 

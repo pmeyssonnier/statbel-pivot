@@ -5,13 +5,13 @@ Outil **statique, 100 % hors-ligne** de tableaux croisés dynamiques (Excel/CSV)
 > Les conventions transversales (identité, ton, rigueur, données perso, environnement machine) vivent dans le `~/.claude/CLAUDE.md` **global**.
 
 ## Architecture
-- `index.html` : page unique ; styles dans `css/pivot.css` ; JS en **scripts classiques** `js/*.js` (globales partagées, ordre d'exécution préservé par le chargeur inline de la page). `engine.js` = moteur pur ; `app.js` = cœur UI ; `app-*.js` par thème ; `app-init-*.js` démarrage.
+- `index.html` : page unique ; styles dans `css/pivot.css` ; JS en **scripts classiques** sous `js/` (globales partagées, ordre d'exécution préservé par le chargeur inline de la page) : `js/core/` (moteur pur `engine.js`, formats, import / export), `js/features/` (graphiques `chart*.js`, champs dérivés, jointures, hiérarchies, session…), `js/ui/` (`app.js` = cœur UI ; `app-*.js` par thème ; `app-init-*.js` démarrage).
 - **Libs vendorisées, jamais de CDN** : `vendor/xlsx` (SheetJS), `vendor/geo` (généré par `tools/gen-geo-data.js`). CSP en `<meta>` dans la page.
 - `build.js` → `dist/` (commandes Vercel fixées dans `vercel.json` ; même arborescence relative : la page lit `vendor/…`, `css/…`, `js/…`). Doit rester hors de `tools/` (supprimé par `.vercelignore` avant le build Vercel).
 - Détail des modules et recettes : `docs/ARCHITECTURE.md`.
 
 ## Invariants
-- **Version** : `PIVOT_VERSION` (`js/app.js`) + ligne « Pivot x.y.z » du `CHANGELOG.md` (testé). Jalons majeurs ; mineur = nouveau jalon, patch = correctif ; ne pas numéroter chaque PR ; tag `pivot-vX.Y.Z` sur les merges.
+- **Version** : `PIVOT_VERSION` (`js/ui/app.js`) + ligne « Pivot x.y.z » du `CHANGELOG.md` (testé). Jalons majeurs ; mineur = nouveau jalon, patch = correctif ; ne pas numéroter chaque PR ; tag `pivot-vX.Y.Z` sur les merges.
 - Nombres belges : « 1.234 » = 1234. i18n : fr/nl/en/de via les chaînes de la page.
 - `.gitignore` : aucun fichier Excel/CSV versionné.
 

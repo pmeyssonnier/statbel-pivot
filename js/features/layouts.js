@@ -5,8 +5,8 @@
  * Exposé : globalThis.PivotLayouts / module.exports. */
 (function (root) {
   'use strict';
-  const E = (typeof module !== 'undefined' && module.exports) ? require('./engine.js') : root.PivotEngine;
-  const PF = (typeof module !== 'undefined' && module.exports) ? require('./format.js') : root.PivotFormat;
+  const E = (typeof module !== 'undefined' && module.exports) ? require('../core/engine.js') : root.PivotEngine;
+  const PF = (typeof module !== 'undefined' && module.exports) ? require('../core/format.js') : root.PivotFormat;
 
   const STORE = 'statbel_pivot_layouts', MAX_LAYOUTS = 50, MAX_NAME = 60;
   const AGG = Object.keys(E.AGG_LABELS), FMT = Object.keys(PF.FORMATS), CF = Object.keys(PF.CF_MODES);
