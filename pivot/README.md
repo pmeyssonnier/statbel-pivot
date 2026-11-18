@@ -92,4 +92,4 @@ L'outil ouvre des fichiers Excel / CSV quelconques : il est publié sur **sa pro
 - Réglages Vercel : Root Directory `.` · Framework *Other* · **Install Command** `true` · **Build Command** `node build-pivot-site.js` · **Output Directory** `dist-pivot` · production sur `main`.
 - Le script de build vit à la racine et non dans `tools/` : `.vercelignore` supprime `tools/` avant le build.
 - La page reste aussi ouvrable en double-clic depuis le dépôt (`file://`).
-- Ancien emplacement : `statbel-app` redirige `/outils/statbel_pivot.html`, `/outils/pivot/*` et `/vendor/geo/*` vers cette adresse.
+- Ancien emplacement : l'outil vivait dans `statbel-app` (`outils/statbel_pivot.html`, `outils/pivot/`). `statbel-app` ne le redirige plus vers cette adresse : les anciens liens y répondent 404.
