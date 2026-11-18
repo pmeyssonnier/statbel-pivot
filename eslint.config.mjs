@@ -1,6 +1,6 @@
 // Lint « prudent » (bugs uniquement) des tests Node. Les callbacks p.evaluate(() => …) s'exécutent DANS le navigateur et
 // référencent les globales de l'outil : no-undef y serait du bruit, on le coupe ; on garde la détection d'inutilisés.
-// Les scripts de l'outil (pivot/**) sont des scripts classiques à globales partagées : non lintés.
+// Les scripts de l'outil (js/**) sont des scripts classiques à globales partagées : non lintés.
 import js from '@eslint/js';
 import globals from 'globals';
 

@@ -1,6 +1,6 @@
-/* pivot/app.js — Interface du tableau croisé (index.html) : Cœur : version, état `st`, utilitaires, lecture et actualisation des fichiers.
+/* js/app.js — Interface du tableau croisé (index.html) : Cœur : version, état `st`, utilitaires, lecture et actualisation des fichiers.
  * Script CLASSIQUE (file://) : les déclarations sont GLOBALES et partagées avec les autres fichiers app*.js (ordre de chargement :
- * voir le chargeur de la page et pivot/README.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
+ * voir le chargeur de la page et docs/ARCHITECTURE.md). Ce fichier ne contient que des fonctions et des déclarations sans effet au
  * chargement ; tout ce qui s'exécute au démarrage est dans les fichiers app-init-*.js (chargés en dernier, dans l'ordre). */
 'use strict';
 const PIVOT_VERSION = '3.8.0';   // à incrémenter à chaque évolution de l'outil (+ entrée « Pivot x.y.z » du CHANGELOG)
