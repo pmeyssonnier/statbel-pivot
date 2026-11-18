@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statbel — Tableaux croisés</title>
+<style>
+  :root{ color-scheme:light; --bg:#f4f6f8; --panel:#fff; --ink:#1b2733; --muted:#5a6b7b; --line:#d9e1e8; --accent:#1565c0; --accent-ink:#fff; --chip:#eef3f8; --th:#e4eaf1; --warn:#e65100; --warn-bg:#fff3e0; }
+  :root[data-theme="light"]{ color-scheme:light; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme:dark; --bg:#121820; --panel:#1b232d; --ink:#e6edf3; --muted:#9fb0c0; --line:#2c3845; --accent:#64b5f6; --accent-ink:#0b1016; --chip:#232f3b; --th:#26323f; --warn:#ffcc80; --warn-bg:#3a2f1a; } }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); }
+  h1{ font-size:17px; margin:0; } h3,h4{ margin:10px 0 6px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  button,select,input{ font:inherit; color:inherit; } 
+  button{ background:var(--chip); border:1px solid var(--line); border-radius:6px; padding:5px 10px; cursor:pointer; }
+  button:hover{ border-color:var(--accent); } button:focus-visible,input:focus-visible,select:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; } button:disabled{ opacity:.45; cursor:default; }
+  button.pri{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  input[type=text],input:not([type]),input[type=search],input[type=number],select{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:4px 6px; }
+  .wrap{ display:grid; grid-template-columns:320px 1fr; gap:12px; padding:12px 16px; align-items:start; }
+  @media (max-width:900px){ .wrap{ grid-template-columns:minmax(0,1fr); } }
+  .wrap > *{ min-width:0; }
+  main{ min-width:0; }
+  aside,.card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .fold{ cursor:pointer; user-select:none; color:var(--accent); font-weight:700; margin-right:4px; } tr.sub.collapsed th{ cursor:pointer; }
+  .chartbox{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px; margin:8px 0; overflow:auto; } .chartbox svg{ max-width:100%; height:auto; display:block; margin:0 auto; } .chbar{ margin-top:6px; }
+  .topbar input[type=number]{ width:64px; } .topbar{ align-items:center; }
+  .chip .ren{ padding:0 4px; min-width:0; background:none; border:0; cursor:pointer; opacity:.6; } .chip .ren.on{ opacity:1; color:var(--accent); }
+  #mDefs .cl, #mConds .cl{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:3px 0; border-top:1px solid var(--line); }
+  #gDefs .cl, #gDraft .cl{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:3px 0; border-top:1px solid var(--line); } #gList label.used{ opacity:.5; } #gList{ max-height:220px; overflow:auto; }
+  #cList .cl{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:3px 0; border-top:1px solid var(--line); } #cList code, #cMsg code{ background:var(--chip); border-radius:4px; padding:0 4px; word-break:break-all; } #cList .bad{ color:var(--warn); font-size:12px; } .calcmark{ font-weight:700; color:var(--accent); padding:0 6px; }
+  .fgrp{ font-size:.78em; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 2px 2px; font-weight:600; } .fgrp:first-child{ margin-top:2px; }
+  .desk{ display:none; } .desk[hidden]{ display:none!important; }
+  /* Grand écran : le tableau et le graphique prennent toute la place disponible */
+  @media (min-width:901px){
+    .desk{ display:inline-flex; }
+    /* Colonne de gauche = tout ce qui se règle (sources, champs, zones, réglages), sans ascenseur ;
+       colonne de droite = le tableau et le graphique, sur toute la hauteur et la largeur restantes. */
+    .wrap{ grid-template-columns:clamp(300px,23vw,380px) minmax(0,1fr); padding:8px 12px; gap:8px 12px; grid-template-rows:auto 1fr; }
+    main{ display:contents; }
+    aside{ grid-column:1; grid-row:1 / span 2; overflow-wrap:anywhere; } aside label, aside .meta{ white-space:normal; }
+    #cfgZones{ grid-column:2; grid-row:1; }
+    #cfgZones .zones{ grid-template-columns:repeat(2,1fr); } @media (min-width:1700px){ #cfgZones .zones{ grid-template-columns:repeat(4,1fr); } } .wrap .zone{ min-height:44px; }
+    #tview{ grid-column:2; grid-row:2; min-width:0; }
+    .wrap #fields{ max-height:none; overflow:visible; }
+    .summary{ margin-top:2px; }
+    .tbar{ justify-content:flex-start; gap:6px 12px; } .tbar > .exp:last-child, #chBtns{ margin-left:auto; }
+    #out{ max-height:calc(100vh - 175px); overflow:auto; }
+    #out thead th{ position:sticky; z-index:2; }
+    .pv-freeze thead .fc{ z-index:4; }
+    #chart svg{ width:100%; height:auto; }
+    /* Mode agrandi : plus de panneau ni de zones — l'écran entier au tableau */
+    body.d-focus .wrap{ grid-template-columns:minmax(0,1fr); grid-template-rows:auto; padding:6px 8px; }
+    body.d-focus aside, body.d-focus #cfgZones{ display:none; }
+    body.d-focus #tview{ grid-column:1; grid-row:1; }
+    body.d-focus header{ padding:4px 12px; } body.d-focus header .meta{ display:none; }
+    body.d-focus #out{ max-height:calc(100vh - 150px); }
+    /* Graphique à droite du tableau (écrans larges) */
+    #tvBody.p-bottom{ display:flex; flex-direction:column; } #tvBody.p-bottom #out{ order:1; } #tvBody.p-bottom #chartBox{ order:2; }
+    #tvBody.p-left, #tvBody.p-right{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 12px; align-items:start; }
+    #tvBody.p-left > .tbar, #tvBody.p-right > .tbar{ grid-column:1 / -1; }
+    #tvBody.p-left #chartBox, #tvBody.p-right #chartBox{ grid-row:2; position:sticky; top:8px; margin:6px 0; } #tvBody.p-left #out, #tvBody.p-right #out{ grid-row:2; }
+    #tvBody.p-right #chartBox{ grid-column:2; } #tvBody.p-right #out{ grid-column:1; }
+    #tvBody.p-left #chartBox{ grid-column:1; } #tvBody.p-left #out{ grid-column:2; }
+  }
+
+  /* Menu « Données » : colonne d'icônes à gauche (élargissable), tiroir sur téléphone */
+  body{ --railw:52px; } body.rail-wide{ --railw:228px; }
+  #rail{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:2px; align-self:start; position:sticky; top:8px; min-width:0; }
+  #rail .it{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; border:0; background:none; padding:9px 0; border-radius:8px; text-align:left; min-height:38px; }
+  #rail .it:hover:not(:disabled){ background:var(--chip); } #rail .it.pri{ background:var(--accent); color:var(--accent-ink); margin:2px 0; }
+  #rail .it i{ font-style:normal; width:22px; text-align:center; font-size:15px; flex:none; } #rail .it .lb{ display:none; white-space:nowrap; }
+  body.rail-wide #rail .it{ justify-content:flex-start; padding:9px 8px; } body.rail-wide #rail .it .lb{ display:inline; }
+  #rail .sep{ height:1px; background:var(--line); margin:6px 2px; } #rail [hidden]{ display:none!important; }
+  #rail .it.stale{ background:var(--warn-bg); color:var(--warn); font-weight:600; }
+  .rail-scrim{ display:none; } .rail-scrim[hidden]{ display:none!important; } #btnRail{ display:none; }
+  /* Fil d'Ariane et menus */
+  .vtabs{ position:relative; gap:6px 8px; }
+  .vtabs .crumb-cur{ font-weight:700; font-size:16px; } .vtabs .crumb-back{ border:0; background:none; color:var(--accent); font-weight:600; padding:4px 2px; } .vtabs .crumb-back[hidden], .vtabs .crumb-sep[hidden]{ display:none; }
+  .vtabs .vcur{ font-weight:700; font-size:15px; max-width:22em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .menu{ position:absolute; z-index:40; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.28); padding:5px; min-width:210px; max-width:min(92vw,26em); }
+  .menu[hidden]{ display:none; } .menu button{ display:flex; gap:10px; width:100%; border:0; background:none; text-align:left; padding:7px 10px; border-radius:7px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .menu button:hover:not(:disabled){ background:var(--chip); } .menu hr{ border:0; border-top:1px solid var(--line); margin:4px 0; } .menu .danger{ color:var(--warn); }
+  .menu .vt{ border-radius:7px; max-width:none; } .menu .vt.on{ font-weight:700; background:var(--chip); } .menu .vt.on::before{ content:"✓ "; }
+  .menu button:disabled{ opacity:.4; }
+  #vmenu{ top:38px; left:0; } #amenu{ top:38px; left:0; }
+  .xwrap{ position:relative; display:inline-block; } #xmenu{ top:34px; right:0; }
+  .newtile{ display:flex; align-items:center; justify-content:center; min-height:140px; border:2px dashed var(--line); background:transparent; border-radius:8px; color:var(--muted); font-size:15px; } .newtile:hover{ border-color:var(--accent); color:var(--accent); }
+  @media (min-width:901px){
+    .wrap{ grid-template-columns:var(--railw) clamp(300px,23vw,380px) minmax(0,1fr)!important; }
+    #rail{ grid-column:1; grid-row:1 / span 2; } aside{ grid-column:2!important; } #cfgZones{ grid-column:3!important; } #tview{ grid-column:3!important; }
+    body.d-dash .wrap{ grid-template-columns:var(--railw) minmax(0,1fr)!important; } body.d-dash aside, body.d-dash #cfgZones{ display:none; } body.d-dash #tview{ grid-column:2!important; grid-row:1 / span 2; }
+    body:not(.d-dash):not(.d-focus) #btnCfgPc{ display:none; }
+    body.cfg-open.d-dash aside, body.cfg-open.d-focus aside{ display:block!important; position:fixed; left:calc(var(--railw) + 22px); top:64px; width:min(360px,38vw); max-height:calc(100vh - 84px); overflow:auto; z-index:36; box-shadow:0 8px 28px rgba(0,0,0,.35); }
+    body.cfg-open.d-dash #cfgZones, body.cfg-open.d-focus #cfgZones{ display:block!important; position:fixed; left:calc(var(--railw) + 34px + min(360px,38vw)); top:64px; width:min(430px,calc(100vw - var(--railw) - min(360px,38vw) - 60px)); max-height:calc(100vh - 84px); overflow:auto; z-index:36; box-shadow:0 8px 28px rgba(0,0,0,.35); }
+    body.d-focus .wrap{ grid-template-columns:var(--railw) minmax(0,1fr)!important; } body.d-focus #rail{ grid-row:1; } body.d-focus #tview{ grid-column:2!important; }   /* le menu Données reste accessible en mode agrandi */
+  }
+  @media (max-width:900px){
+    #btnRail{ display:inline-block; } #rail{ display:none; }
+    body.rail-open #rail{ display:flex; position:fixed; left:0; top:0; bottom:0; width:min(82vw,320px); z-index:50; border-radius:0; overflow:auto; padding:10px; box-shadow:4px 0 22px rgba(0,0,0,.45); }
+    body.rail-open #rail .it{ justify-content:flex-start; padding:11px 8px; } body.rail-open #rail .it .lb{ display:inline; } body.rail-open #railTg{ display:none; }
+    body.rail-open .rail-scrim{ display:block; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:45; }
+  }
+  @media print{ #rail, .rail-scrim, .menu{ display:none!important; } }
+  #btnRefresh.stale{ background:var(--warn-bg); color:var(--warn); border-color:var(--warn); font-weight:600; }
+  .vtabs{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:0 0 6px; border-bottom:1px solid var(--line); padding-bottom:4px; }
+  .vtabs .vt{ border-radius:6px 6px 0 0; padding:5px 12px; max-width:16em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .vtabs .vt.on{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .vtabs .vt[draggable=true]{ cursor:grab; } .vtabs .vt.dropL{ box-shadow:inset 3px 0 0 var(--accent); } .vtabs .vt.dropR{ box-shadow:inset -3px 0 0 var(--accent); } .vtabs .vi:disabled{ opacity:.35; }
+  .vtabs .vi{ padding:3px 7px; min-width:30px; font-size:12px; } .vtabs .vadd{ font-weight:700; }
+  @media (pointer:coarse){ .vtabs .vt,.vtabs .vi{ min-height:40px; } }
+  #chPosL{ align-items:center; gap:6px; }
+  /* Tableau de bord : toutes les vues en tuiles */
+  .dash{ display:none; } body.d-dash .dash{ display:grid; grid-template-columns:repeat(var(--dc,2),minmax(0,1fr)); gap:12px; align-items:start; }
+  body.d-dash #tvBody, body.d-dash #tview > .summary, body.d-dash #tview > .tbar{ display:none; }
+  .dash-bar{ grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .tile{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px; min-width:0; } .tile.cur{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .tile .th{ display:flex; gap:6px; align-items:center; cursor:grab; } .tile .grip{ color:var(--muted); font-size:15px; line-height:1; } .tile.dragging{ opacity:.45; } .tile.dropL{ box-shadow:inset 4px 0 0 var(--accent); } .tile.dropR{ box-shadow:inset -4px 0 0 var(--accent); } .tile .th b{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .tile .tbtns{ display:flex; gap:4px; } .tile .tbtns button{ padding:2px 8px; }
+  .tile .tbody{ max-height:440px; overflow:auto; margin-top:6px; } .tile svg{ width:100%; height:auto; display:block; } .tile table.pv{ font-size:12px; }
+  .chipbtn{ padding:2px 8px; font-size:12px; } .vtabs .vdash{ margin-left:auto; } .vtabs .vdash.on{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  @media (max-width:900px){ body.d-dash .dash{ grid-template-columns:minmax(0,1fr); } body.d-dash .tile{ grid-column:auto!important; } }
+  @media print{
+    :root:not([data-theme="light"]), :root{ color-scheme:light; --bg:#fff; --panel:#fff; --ink:#000; --muted:#444; --line:#bbb; --chip:#f2f2f2; --th:#e8eef5; --accent:#1565c0; --accent-ink:#fff; }
+    body{ background:#fff; color:#000; }
+    body.d-dash header, body.d-dash aside, body.d-dash #cfgZones, body.d-dash .vtabs, body.d-dash .mob-fab, body.d-dash .dash-bar, body.d-dash .tile .tbtns{ display:none!important; }
+    body.d-dash .wrap{ display:block; padding:0; } body.d-dash main{ display:block; }
+    body.d-dash .dash{ gap:8px; } .tile{ break-inside:avoid; border-color:#ccc; } .tile .tbody{ max-height:none; overflow:visible; }
+  }
+  .frules{ margin:8px 0; } .frules summary{ cursor:pointer; font-weight:600; font-size:13px; color:var(--muted); } .frow{ display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; margin:6px 0; } .frow[hidden]{ display:none; } .frow b{ min-width:3.2em; } .frow input[type=text]{ flex:1 1 12em; } .frow input[type=number],.frow input[type=date]{ width:9.5em; }
+  /* Accordéons : Sources, Champs, zones de configuration */
+  details.acc{ margin:0 0 4px; } details.acc > summary{ cursor:pointer; padding:7px 0; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  details.acc > summary .meta{ text-transform:none; letter-spacing:0; font-weight:400; margin-left:4px; white-space:normal; }
+  details.acc:not([open]) > summary{ border-bottom:1px solid var(--line); } details.zone.acc{ margin:0; } details.zone.acc > summary{ padding:0 0 4px; } details.zone.acc:not([open]) > summary{ border-bottom:0; padding:0; }
+  .jform{ border:1px solid var(--line); border-radius:8px; margin:8px 0; } .jform legend{ font-weight:600; font-size:13px; padding:0 6px; } .jcols{ display:grid; grid-template-columns:repeat(auto-fill,minmax(14em,1fr)); gap:2px 10px; max-height:30vh; overflow:auto; margin:4px 0 8px; } .jcols label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .jl{ display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; padding:5px 0; border-top:1px solid var(--line); } .jl .bad{ color:var(--warn); font-size:12px; } .src .jb{ font-size:11px; padding:1px 7px; }
+  .pvtabs{ display:flex; gap:4px; margin:8px 0; } .pvtabs button.on{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .pvscroll{ max-height:50vh; overflow:auto; border:1px solid var(--line); border-radius:6px; } .pvissues{ margin:6px 0 10px; padding:0; list-style:none; max-height:24vh; overflow:auto; font-size:13px; } .pvissues li{ padding:2px 0; } .pvissues .w{ color:var(--warn); }
+  table.pvt{ font-size:12.5px; white-space:nowrap; } table.pvt thead th{ position:sticky; top:0; background:var(--th); z-index:1; } table.pvt td.num{ text-align:right; font-variant-numeric:tabular-nums; } table.pvt tr.hdrrow td{ background:var(--th); font-weight:700; } table.pvt tr.dim td{ opacity:.5; } .pvt .tp{ font-size:10px; color:var(--muted); margin-left:4px; }
+  #btnProj{ max-width:16em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } #projCur{ font-weight:600; }
+  .pl{ display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; padding:6px 4px; border-top:1px solid var(--line); } .pl.cur{ background:var(--chip); border-radius:6px; } .pl .pbtns{ margin-left:auto; display:flex; flex-wrap:wrap; gap:4px; } .pl .pbtns button{ padding:2px 9px; font-size:12px; }
+  #fieldTip{ position:fixed; z-index:2000; max-width:min(420px,92vw); padding:5px 9px; border-radius:6px; background:var(--ink); color:var(--bg); font-size:12.5px; line-height:1.35; word-break:break-all; pointer-events:none; box-shadow:0 2px 10px rgba(0,0,0,.35); }
+  table.ls th[data-ls]{ cursor:pointer; } table.ls td.num{ text-align:right; font-variant-numeric:tabular-nums; } table.ls td{ max-width:24em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hint{ color:var(--muted); font-size:12.5px; margin:6px 0; } .hint.big{ font-size:15px; padding:30px 10px; text-align:center; }
+  .ver{ color:var(--muted); font-size:12px; border:1px solid var(--line); border-radius:10px; padding:0 7px; white-space:nowrap; }
+  .meta{ color:var(--muted); font-size:12px; white-space:nowrap; }
+  .src{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; padding:5px 0; border-bottom:1px dashed var(--line); } .src.off{ opacity:.55; }
+  .srcname{ flex:1 1 100%; word-break:break-all; } .nbr{ width:56px; } .x{ padding:0 7px; margin-left:auto; }
+  #fields{ max-height:46vh; overflow:auto; margin-top:6px; }
+  .fld{ display:flex; align-items:center; gap:6px; padding:3px 4px; border-radius:6px; cursor:grab; } .fld:hover{ background:var(--chip); }
+  .fld.der{ padding-left:18px; opacity:.85; } .fl{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .btns{ display:flex; gap:2px; } .btns button{ padding:5px 9px; min-width:32px; min-height:32px; font-size:12px; } @media (pointer:coarse){ .btns button,.chip button,.x{ min-width:44px; min-height:44px; } }
+  .badge{ font-size:10px; min-width:30px; text-align:center; border-radius:4px; padding:1px 3px; background:var(--chip); color:var(--muted); }
+  .badge.number{ color:var(--accent); } .warn{ font-size:11px; color:var(--warn); background:var(--warn-bg); border-radius:4px; padding:0 4px; }
+  .zones{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; } @media (max-width:1100px){ .zones{ grid-template-columns:repeat(2,1fr); } }
+  .zone{ min-width:0; } .chip{ max-width:100%; flex-wrap:wrap; } .chip select{ max-width:11em; }
+  details.fmt{ margin-top:8px; } details.fmt summary{ cursor:pointer; font-weight:600; font-size:13px; color:var(--muted); }
+  .fmtgrid{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin-top:6px; }
+  /* Figer la 1re colonne (libellés) */
+  .pv-freeze .fc{ position:sticky; left:0; z-index:1; box-shadow:2px 0 0 var(--line); } .pv-freeze thead .fc{ z-index:3; }
+  .pv-wrap th.rlab, .pv-wrap th.rl{ white-space:normal; max-width:14em; min-width:7em; } @media (max-width:900px){ .pv-wrap th.rlab, .pv-wrap th.rl{ max-width:40vw; } }
+  /* Densité */
+  .pv-d-compact{ font-size:11.5px; } .pv-d-compact th,.pv-d-compact td{ padding:1px 6px; }
+  .pv-d-aere{ font-size:14px; } .pv-d-aere th,.pv-d-aere td{ padding:8px 12px; }
+  .pv-w-n td{ min-width:4.5em; } .pv-w-l td,.pv-w-l thead th{ min-width:9em; }
+  /* Styles de tableau */
+  .pv-cap{ font-weight:700; padding:6px 8px; color:var(--ink); }
+  .pv-s-bandes tbody tr:nth-child(even) td{ background:var(--chip); }
+  .pv-s-sobre th,.pv-s-sobre td{ border-right:0; } .pv-s-sobre thead th{ background:var(--panel); border-bottom:2px solid var(--ink); }
+  .pv-s-statbel thead th{ background:#1565c0; color:#fff; border-color:#0d47a1; } .pv-s-statbel th.rlab{ color:#0d47a1; }
+  .pv-s-statbel tr.tot td,.pv-s-statbel tr.tot th{ background:#dbe8f7!important; color:#0d47a1; }
+  .pv-s-sombre{ --panel:#1b232d; --ink:#e6edf3; --th:#26323f; --line:#2c3845; --chip:#232f3b; color:#e6edf3; }
+  table.pv tr.sub td,table.pv tr.sub th{ font-weight:700; background:var(--th)!important; border-top:1px solid var(--line); }
+  .ss{ display:block; margin:6px 0 2px; } .linkbtn{ background:none; border:0; color:var(--accent); padding:2px 0; text-decoration:underline; cursor:pointer; font-size:12px; }
+  .summary{ font-size:12.5px; color:var(--muted); margin:10px 0 4px; } .summary b{ color:var(--ink); }
+  .tbar{ justify-content:space-between; margin:4px 0 6px; } .exp{ display:flex; gap:6px; }
+  #out{ margin-top:6px; }
+  .mob,.mob-fab{ display:none; }
+  /* Mobile : deux écrans — « Configurer » (sources, champs, zones) OU « Tableau » en plein écran. */
+  @media (max-width:900px){
+    header{ position:sticky; top:0; z-index:20; }
+    header .meta, #btnReset{ display:none; }
+    .mob{ display:inline-block; }
+    body.m-table aside, body.m-table #cfgZones{ display:none; }
+    body.m-cfg #tview{ display:none; }
+    body.m-cfg .mob-fab{ display:block; position:fixed; left:16px; right:16px; bottom:12px; z-index:20; padding:12px; font-size:15px; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+    body.m-cfg .wrap{ padding-bottom:70px; }
+    .zones{ grid-template-columns:1fr; }
+    .wrap{ padding:8px; gap:8px; }
+    #out{ max-height:calc(100vh - 150px); }
+  }
+  .zone{ border:1px dashed var(--line); border-radius:8px; padding:6px 8px; min-height:64px; } .zone.over{ border-color:var(--accent); background:var(--chip); }
+  .zone h4{ margin:0 0 4px; } .zc{ display:flex; flex-wrap:wrap; gap:4px; }
+  .chip{ display:inline-flex; align-items:center; gap:4px; background:var(--chip); border:1px solid var(--line); border-radius:14px; padding:1px 4px 1px 9px; }
+  .chip button{ border:0; background:none; padding:0 4px; } .chip em{ font-style:normal; color:var(--muted); font-size:12px; } .chip select{ padding:0 2px; font-size:12px; }
+  .chip.warnchip{ background:var(--warn-bg); color:var(--warn); } .chip a{ color:var(--ink); text-decoration:none; }
+  .bar[hidden]{ display:none; } .bar{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; margin:10px 0; }
+  #out{ overflow:auto; max-height:72vh; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+  table.pv{ border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:12.5px; }
+  table.pv th,table.pv td{ border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:3px 8px; background:var(--panel); }
+  table.pv thead th{ position:sticky; top:0; background:var(--th); z-index:2; text-align:center; }
+  table.pv th.srt{ cursor:pointer; } table.pv th.srt:hover{ color:var(--accent); }
+  table.pv td[data-r]{ cursor:pointer; } table.pv td[data-r]:hover{ outline:2px solid var(--accent); outline-offset:-2px; }
+  table.pv td{ text-align:right; font-variant-numeric:tabular-nums; } table.pv th.rlab{ text-align:left; vertical-align:top; background:var(--panel); font-weight:600; }
+  table.pv th.rl,table.pv th.corner{ text-align:left; } .tot,td.tot{ font-weight:700; } tr.tot td,tr.tot th{ background:var(--th)!important; }
+  dialog{ border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); max-width:min(900px,94vw); width:100%; padding:14px 16px; }
+  .tsel{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; padding:4px 8px; } .tsel[hidden]{ display:none; }
+  /* assistant « Projet » (3.3.0) */
+  dialog.wiz{ width:min(860px,96vw); max-height:92vh; } .wz-steps{ display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; } .wz-steps button{ border-radius:999px; padding:4px 12px; } .wz-steps button.on{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .wz-body{ min-height:240px; max-height:62vh; overflow:auto; padding:2px 2px 8px; } .wz-act{ justify-content:flex-start; flex-wrap:wrap; margin:6px 0; } .wz-body h4{ margin:14px 0 4px; }
+  .wz-der > div{ display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); } .wz-der .hint{ flex:1 1 16em; }
+  .wz-hc{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin:6px 0; } .wz-hc input[type=text]{ font-weight:600; } .wz-hc ol{ margin:6px 0; padding:0; list-style:none; } .wz-hc li{ display:flex; gap:6px; align-items:center; padding:2px 0; } .wz-hc li span{ flex:1; }
+  /* barre de filtres en pastilles (3.2.0) : « Tout » = global, « Vue » = cette vue seulement */
+  .fbar{ position:relative; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; padding:4px 8px; } .fbar[hidden]{ display:none; } .fbar .meta{ color:var(--muted); font-size:.85em; }
+  .fchip{ display:inline-flex; align-items:center; gap:6px; background:var(--chip); border:1px solid var(--line); border-radius:999px; padding:2px 4px 2px 8px; } .fchip.off{ opacity:.5; }
+  .fchip label{ display:inline-flex; align-items:center; gap:6px; } .fchip select{ max-width:14em; border:0; background:transparent; font:inherit; color:inherit; }
+  .fchip .scope{ font-size:.7em; text-transform:uppercase; letter-spacing:.04em; padding:1px 6px; border-radius:999px; background:var(--accent); color:#fff; } .fchip .scope.v{ background:var(--muted); }
+  .fchip .fx{ border:0; background:none; cursor:pointer; color:inherit; padding:0 6px; border-radius:999px; line-height:1.4; } .fchip .fx:hover{ background:var(--line); }
+  .fadd{ border-radius:999px; padding:3px 12px; } .fmenu{ top:100%; max-height:min(60vh,420px); overflow:auto; } .fmenu .mh{ display:block; padding:4px 10px; color:var(--muted); font-size:.85em; } .fmenu .fl{ display:flex; flex-direction:column; } .fmenu .fsc.on::before{ content:"● "; }
+  .dash-bar.fbar{ position:relative; padding:0; }
+    /* Panneau « ⚙ Graphique » : tiroir à droite (feuille depuis le bas sur téléphone), réglages en sections repliables */
+    .chpanel{ position:fixed; top:0; right:0; bottom:0; width:min(360px,100vw); z-index:35; background:var(--panel); border-left:1px solid var(--line); box-shadow:-6px 0 22px rgba(0,0,0,.28); display:flex; flex-direction:column; transform:translateX(105%); visibility:hidden; transition:transform .18s, visibility 0s .18s; }
+    body.cp-open #chOpts, body.tp-open #tbOpts{ transform:none; visibility:visible; transition:transform .18s; } .chpanel[hidden]{ display:none; }
+    .cp-top{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); } .cp-top .cp-t{ flex:1; min-width:0; } .cp-top .cp-t b{ display:block; } .cp-in{ overflow:auto; padding:2px 12px 16px; }
+    .tag{ white-space:nowrap; font-size:11px; background:var(--chip); border-radius:8px; padding:1px 8px; color:var(--muted); font-weight:400; }
+    details.sec{ border-bottom:1px solid var(--line); } details.sec[hidden]{ display:none; }
+    details.sec>summary{ cursor:pointer; padding:10px 2px; font-weight:600; list-style:none; display:flex; gap:8px; align-items:center; } details.sec>summary::-webkit-details-marker{ display:none; }
+    details.sec>summary .tag{ margin-left:auto; } details.sec>summary::after{ content:"▾"; color:var(--muted); } details.sec[open]>summary::after{ content:"▴"; }
+    details.sec>label.meta{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:7px 0; white-space:normal; }
+    details.sec>label.meta>select, details.sec>label.meta>input[type=text], details.sec>label.meta>input[type=number]{ width:min(56%,15em)!important; flex:0 0 auto; min-width:0; }
+    details.sec>label.meta.chk{ justify-content:flex-start; }
+    #selCfg{ padding-top:6px; }
+    @media (max-width:900px){ .chpanel{ top:auto; left:0; right:0; width:100%; height:74vh; border-left:0; border-top:1px solid var(--line); border-radius:14px 14px 0 0; transform:translateY(105%); } body.cp-open #chOpts, body.tp-open #tbOpts{ transform:none; } }
+    @media print{ .chpanel{ display:none!important; } }
+    /* infobulles riches du menu Données */
+    .rtip{ position:fixed; z-index:90; background:#1b2733; color:#fff; border-radius:9px; padding:8px 11px; max-width:260px; font-size:12.5px; box-shadow:0 6px 20px rgba(0,0,0,.4); pointer-events:none; opacity:0; transition:opacity .12s; } .rtip.on{ opacity:1; } .rtip b{ display:block; font-size:13px; margin-bottom:2px; } .rtip span{ color:#c9d4df; } .rtip em{ display:block; margin-top:3px; color:#f0c674; font-style:normal; }
+    .gsel-cfg{ display:inline-flex; flex-wrap:wrap; gap:6px; align-items:center; } .dash-bar select[data-gsel]{ max-width:14em; } .tsel select{ max-width:16em; } .ce-sel{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding-top:6px; border-top:1px solid var(--line); }
+  dialog.ce{ max-width:min(1100px,96vw); } .ce-grid{ display:grid; grid-template-columns:minmax(260px,340px) 1fr; gap:14px; } .ce-form{ display:flex; flex-direction:column; gap:6px; max-height:68vh; overflow:auto; padding-right:6px; } .ce-form label{ display:flex; justify-content:space-between; align-items:center; gap:8px; } .ce-form label.chk{ justify-content:flex-start; } .ce-form select,.ce-form input[type=text],.ce-form input[type=number]{ box-sizing:border-box; width:12em; max-width:58%; min-width:0; } .ce-form input[type=checkbox]{ width:auto; max-width:none; } .ce-form label:not([data-opt]) select{ width:18em; max-width:68%; } .ce-form .ce-sel select{ width:auto; max-width:100%; } .ce-prev{ overflow:auto; max-height:68vh; } .ce-prev svg{ max-width:100%; height:auto; } @media (max-width:760px){ .ce-grid{ grid-template-columns:1fr; } .ce-form,.ce-prev{ max-height:none; } }
+  dialog::backdrop{ background:rgba(0,0,0,.4); } #fList{ max-height:50vh; overflow:auto; display:grid; gap:2px; margin:8px 0; } #fList label{ cursor:pointer; }
+  #mapBody{ max-height:56vh; overflow:auto; } table.map{ width:100%; border-collapse:collapse; } table.map td,table.map th{ padding:3px 6px; border-bottom:1px solid var(--line); text-align:left; } table.map input{ width:100%; }
+  .row{ display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tableaux croisés dynamiques</h1><small id="pvVer" class="ver" title="Version de l'outil (voir CHANGELOG.md)"></small>
+  <button id="btnProj" type="button" title="Projets : enregistrer, ouvrir, créer, exporter un tableau de bord complet (fichiers, onglets, graphiques, mise en page)">📁 <span id="projCur">Projet 1</span> ▾</button>
+  <button id="btnWizTop" type="button" title="Modifier le projet : sources, jointures, champs calculés, mesures, groupes, hiérarchies">✎ Modifier le projet</button>
+  <button id="btnCfgPc" class="desk" type="button" aria-expanded="false" title="Configurer la vue active : sources, champs, lignes, colonnes, valeurs, filtres (panneau flottant)">⚙ Configurer</button>
+  <input type="file" id="fileIn" multiple accept=".xlsx,.xlsm,.xlsb,.xls,.ods,.csv,.tsv,.txt" hidden>
+  <button id="btnRail" class="mob" type="button" aria-controls="rail" aria-expanded="false">☰ Données</button>
+  <button id="btnCfg" class="mob" type="button">⚙ Configurer</button>
+  <span class="meta" id="msg" role="status"></span>
+  <span class="meta" style="margin-left:auto">100 % local : aucun fichier ne quitte votre appareil</span>
+</header>
+<div id="railTip" class="rtip" role="tooltip"></div>
+<div class="wrap">
+  <div id="railScrim" class="rail-scrim" hidden></div>
+  <nav id="rail" aria-label="Données">
+    <button id="railTg" class="it tg" type="button" aria-expanded="false" title="Élargir le menu"><i aria-hidden="true">▸</i><span class="lb">Replier le menu</span></button>
+    <button class="it pri" id="btnWiz" type="button" data-d="Assistant du projet : fichiers sources, jointures, champs calculés, mesures, groupes et hiérarchies (région › province › commune…)." aria-label="Modifier le projet"><i aria-hidden="true">✎</i><span class="lb">Modifier le projet…</span></button>
+    <button class="it" id="btnRefresh" type="button" hidden data-d="Relire les fichiers sources modifiés, sans les rajouter" aria-label="Actualiser"><i aria-hidden="true">↻</i><span class="lb">Actualiser</span></button>
+    <button class="it" id="btnPreview" type="button" disabled data-d="Aperçu des lignes et contrôle de qualité des données (valeurs manquantes, non numériques, doublons…)" aria-label="Aperçu"><i aria-hidden="true">👁</i><span class="lb">Aperçu…</span></button>
+    <button class="it" id="btnCube" type="button" disabled data-d="Quel champ porte les graphiques (ex. Commune) et quels champs servent au filtrage (ex. Région, Province)" aria-label="Cube de données"><i aria-hidden="true">🧊</i><span class="lb">Cube…</span></button>
+    <div class="sep" role="separator"></div>
+    <button class="it" id="btnReset" type="button" data-d="Réinitialiser la disposition de la vue" aria-label="Réinitialiser la disposition"><i aria-hidden="true">⟲</i><span class="lb">Réinitialiser la disposition</span></button>
+  </nav>
+  <aside>
+    <p id="pivotConflicts" class="warn" role="alert" hidden></p>
+    <p id="pivotAmbiguities" class="warn" role="status" hidden></p>
+    <details class="acc" id="accFld" open>
+    <summary>Champs <span class="meta" id="accFldInfo"></span></summary>
+    <p class="meta" style="margin:2px 0 6px">Glisser vers une zone, ou F / C / L / V</p>
+    <input type="search" id="fieldSearch" placeholder="Rechercher un champ…" style="width:100%">
+    <div id="fields"></div>
+    </details>
+    <div id="cfgDerived">
+      <details class="fmt" id="detLayouts">
+        <summary>Dispositions enregistrées</summary>
+        <div class="fmtgrid">
+          <select id="lySel" aria-label="Disposition enregistrée"></select>
+          <button id="lyApply" type="button">Appliquer</button>
+          <button id="lyDel" type="button">Supprimer</button>
+        </div>
+        <div class="fmtgrid">
+          <input type="text" id="lyName" placeholder="Nom de la disposition" maxlength="60" aria-label="Nom de la disposition">
+          <button id="lySave" type="button">Enregistrer</button>
+          <button id="lyExport" type="button">Exporter (.json)</button>
+          <button id="lyImport" type="button">Importer…</button>
+          <input type="file" id="lyFile" accept=".json,application/json" hidden>
+        </div>
+        <p class="hint" id="lyMsg" role="status">Une disposition mémorise les champs, tris, filtres, formats et réglages d'affichage — jamais les données. Elle reste sur cet appareil (ou dans le fichier exporté).</p>
+      </details>
+    </div>
+  </aside>
+  <main>
+    <div class="card" id="cfgZones">
+      <div class="zones">
+        <details class="acc zone" data-zone="filters" id="accZ_filters" open><summary>Filtres <span class="meta" id="accInfo_filters"></span></summary><div class="zc"></div></details>
+        <details class="acc zone" data-zone="cols" id="accZ_cols" open><summary>Colonnes <span class="meta" id="accInfo_cols"></span></summary><div class="zc"></div></details>
+        <details class="acc zone" data-zone="rows" id="accZ_rows" open><summary>Lignes <span class="meta" id="accInfo_rows"></span></summary><div class="zc"></div></details>
+        <details class="acc zone" data-zone="vals" id="accZ_vals" open><summary>Valeurs <span class="meta" id="accInfo_vals"></span></summary><div class="zc"></div></details>
+      </div>
+    </div>
+    <div id="tview">
+      <div id="viewTabs" class="vtabs" aria-label="Navigation : tableau de bord et vues"></div>
+      <div id="dash" class="dash" aria-label="Tableau de bord"></div>
+      <div class="summary" id="summary"></div>
+      <div class="bar tbar">
+        <span class="meta" id="info"></span>
+        <span class="exp desk"><button id="btnFocus" type="button" title="Masquer le panneau et la configuration pour agrandir le tableau (touche F)">⛶ Agrandir</button></span>
+        <span class="exp"><select id="optMode" title="Affichage : tableau croisé ou liste des données (lignes filtrées)"><option value="pivot">Tableau croisé</option><option value="list">Liste des données</option></select><select id="optSort" title="Trier les lignes"><option value="label">Lignes A→Z</option><option value="labelDesc">Lignes Z→A</option><option value="desc">Valeur ↓</option><option value="asc">Valeur ↑</option><option value="custom" hidden>Tri par colonne</option></select><span id="foldBtns" hidden><button id="btnFoldAll" title="Replier tous les groupes (ne garder que les totaux)">⊟ Replier</button><button id="btnUnfoldAll" title="Déplier tous les groupes">⊞ Déplier</button></span><button id="btnSwap" title="Inverser lignes et colonnes">⇄ Inverser</button><span class="xwrap"><button id="btnExp" type="button" aria-haspopup="menu" aria-expanded="false" title="Exporter le tableau ou le graphique">⭳ Exporter ▾</button><div class="menu" id="xmenu" role="menu" hidden><button id="btnCopy" role="menuitem">⧉ Copier le tableau</button><button id="btnCsv" role="menuitem">CSV</button><button id="btnXlsx" role="menuitem" title="Classeur Excel mis en forme (styles, formats, mise en forme conditionnelle)">XLSX (mis en forme)</button><div id="chBtns" hidden><hr><button id="chPng" role="menuitem" type="button" title="Enregistrer le graphique en image PNG">🖼 Graphique en PNG</button><button id="chSvg" role="menuitem" type="button" title="Enregistrer le graphique en SVG (vectoriel)">Graphique en SVG</button></div></div></span></span>
+      </div>
+      <div id="tvBody">
+      <div class="bar tbar chbar">
+        <label class="meta" for="chType">Graphique</label>
+        <select id="chType" title="Type de graphique"></select>
+        <select id="chK" title="Valeur représentée" hidden></select>
+        <select id="chK2" title="Deuxième valeur (ligne du graphique combiné, côté droit de la pyramide, axe vertical du nuage de points)" hidden></select>
+        <label class="meta" id="chGL" hidden>Objectif <input type="number" id="chG" step="any" min="0" placeholder="auto" title="Maximum de la jauge (vide = automatique)" style="width:7em"></label>
+        <button type="button" id="btnTbOpts" aria-controls="tbOpts" aria-expanded="false" title="Options du tableau : totaux, décimales, Top N, mise en forme">⚙ Tableau</button>
+        <button type="button" id="btnChOpts" hidden aria-controls="chOpts" aria-expanded="false" title="Options du graphique : données, affichage, axes, tendance, sélecteurs">⚙ Graphique</button>
+        <label class="desk" id="chPosL" hidden><span class="meta">Position</span> <select id="chPos" title="Place du graphique par rapport au tableau"><option value="top">Au-dessus</option><option value="bottom">En dessous</option><option value="left">À gauche</option><option value="right">À droite</option></select></label>
+      </div>
+      <section class="chpanel" id="chOpts" hidden aria-label="Options du graphique">
+        <div class="cp-top"><div class="cp-t"><b>⚙ Graphique</b><span class="tag" id="cpType"></span></div><button type="button" id="cpReset" title="Rétablir les réglages par défaut du graphique">Réinit.</button><button type="button" id="cpClose" aria-label="Fermer le panneau" title="Fermer (Échap)">✕</button></div>
+        <div class="cp-in">
+          <div id="coBox"></div>
+          <p class="hint" id="coHidden" hidden style="margin:2px 0"></p>
+          <details class="sec" open><summary>Sélecteurs de la vue</summary><div id="selCfg" class="bar" style="margin:6px 0"></div></details>
+        </div>
+      </section>
+      <section class="chpanel" id="tbOpts" hidden aria-label="Options du tableau">
+        <div class="cp-top"><div class="cp-t"><b>⚙ Tableau</b><span class="tag" id="tpType">tableau croisé</span></div><button type="button" id="tpClose" aria-label="Fermer le panneau" title="Fermer">✕</button></div>
+        <div class="cp-in">
+          <details class="sec" open><summary>Totaux et décimales</summary><div class="bar" style="margin:6px 0">
+        <label><input type="checkbox" id="optRowTot" checked> Total à droite</label>
+        <label><input type="checkbox" id="optColTot" checked> Total en bas</label>
+        <label><input type="checkbox" id="optSub"> Sous-totaux par niveau</label>
+        <label>Décimales <select id="optDec"><option value="auto">auto</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label>
+          </div></details>
+          <details class="sec" open><summary>Top N</summary><div class="bar topbar" style="margin:6px 0">
+        <label>Top <input type="number" id="optTopN" min="0" max="500" step="1" value="0" inputmode="numeric" title="0 = tout afficher"></label>
+        <select id="optTopMode" title="Premiers ou derniers"><option value="top">premiers</option><option value="flop">derniers</option></select>
+        <select id="optTopK" title="Valeur de classement" hidden></select>
+        <label><input type="checkbox" id="optTopOthers" checked> Regrouper le reste en « Autres »</label>
+        <span class="hint" style="margin:0">Sur le 1<sup>er</sup> champ en Lignes, classé par la valeur choisie. 0 = tout afficher.</span>
+          </div></details>
+          <details class="sec" open><summary>Mise en forme</summary>
+        <div class="fmtgrid">
+          <label>Style <select id="optStyle"><option value="standard">Standard</option><option value="bandes">Lignes à bandes</option><option value="sobre">Sobre</option><option value="statbel">Statbel (bleu)</option><option value="sombre">Sombre</option></select></label>
+          <label>Densité <select id="optDensity"><option value="compact">Compacte</option><option value="normal">Normale</option><option value="aere">Aérée</option></select></label>
+          <label>Colonnes de valeurs <select id="optColW"><option value="n">Étroites</option><option value="auto">Automatique</option><option value="l">Larges</option></select></label>
+          <label><input type="checkbox" id="optFreeze"> Figer la 1re colonne</label>
+          <label><input type="checkbox" id="optWrap"> Libellés sur plusieurs lignes</label>
+          <label>Titre du tableau <input type="text" id="optCap" maxlength="120" placeholder="aucun" style="width:12em"></label>
+          <label>Titre : <select id="optCapH" title="Alignement du titre du tableau"><option value="left">à gauche</option><option value="center">au centre</option><option value="right">à droite</option></select> <select id="optCapV" title="Place du titre du tableau"><option value="top">en haut</option><option value="bottom">en bas</option></select></label>
+          <label>Mise en forme conditionnelle <select id="optCf"></select></label>
+          <span id="cfRule" hidden><select id="optCfOp"><option>&gt;</option><option>&lt;</option><option>&gt;=</option><option>&lt;=</option><option>=</option></select> <input type="text" id="optCfVal" inputmode="decimal" placeholder="seuil" size="8"></span>
+        </div>
+        <p class="hint">Le format de chaque valeur (entier, %, €, milliers…) se choisit dans la zone « Valeurs ».</p>
+          </details>
+        </div>
+      </section>
+      <div id="selBar" class="fbar" data-ctx="view" hidden></div>
+      <div id="chartBox" class="chartbox" hidden><div id="chart"></div><p class="hint" id="chNote"></p></div>
+      <div class="bar" id="listBar" hidden>
+        <input type="search" id="lsQ" placeholder="Rechercher dans les données…" aria-label="Rechercher dans les données" style="flex:1 1 14em;max-width:26em">
+        <button type="button" id="lsCols" title="Choisir les colonnes affichées">Colonnes…</button>
+        <span class="exp"><button type="button" id="lsPrev" aria-label="Page précédente">‹</button><span class="meta" id="lsPage"></span><button type="button" id="lsNext" aria-label="Page suivante">›</button></span>
+      </div>
+      <div id="out"></div>
+      </div>
+    </div>
+  </main>
+  <button id="btnView" class="pri mob-fab" type="button">▦ Voir le tableau</button>
+</div>
+
+<dialog id="dlgWiz" class="wiz" aria-labelledby="wzTitle">
+  <h3 id="wzTitle" style="margin:0 0 6px">Projet « <span id="wzProj"></span> » <button type="button" id="wzRename" class="linkbtn">Renommer…</button></h3>
+  <nav class="wz-steps" id="wzSteps" aria-label="Étapes du projet">
+    <button type="button" data-wz="1">1 · Sources <span class="meta" id="wzSrcInfo"></span></button>
+    <button type="button" data-wz="2">2 · Jointures <span class="meta" id="wzJoinInfo"></span></button>
+    <button type="button" data-wz="3">3 · Champs et hiérarchies</button>
+  </nav>
+  <div class="wz-body">
+    <section class="wz-p" data-wzp="1">
+      <p class="hint">Ajoutez les fichiers du projet (Excel, CSV…). Les tuiles ne proposeront que les champs de ces sources. Les colonnes de noms différents se fusionnent dans « Colonnes et fusion ».</p>
+      <div class="row wz-act"><button type="button" id="wzAdd" class="pri">＋ Ajouter des fichiers</button><button type="button" id="wzMap" disabled>⇄ Colonnes et fusion…</button></div>
+      <div id="sources"></div>
+      <label class="meta ss" id="autoRow" hidden><input type="checkbox" id="optAuto"> Actualiser automatiquement au retour sur cette page</label>
+      <label class="meta ss" title="Les fichiers restent dans ce navigateur (IndexedDB), jamais envoyés. À décocher sur un appareil partagé."><input type="checkbox" id="ssRemember" checked> Mémoriser fichiers et sélections</label>
+      <button id="ssClear" type="button" class="linkbtn">Oublier la session mémorisée</button>
+      <span class="meta" id="ssMsg" role="status"></span>
+    </section>
+    <section class="wz-p" data-wzp="2" hidden>
+      <p class="hint">Rattachez les colonnes d'un fichier à un autre grâce à une clé commune (au moins deux sources). Les colonnes de la jointure s'ajoutent à la liste des champs.</p>
+      <div class="row wz-act"><button type="button" id="wzJoin" class="pri" disabled>⋈ Nouvelle jointure…</button></div>
+      <div id="wzJoins"></div>
+    </section>
+    <section class="wz-p" data-wzp="3" hidden>
+      <h4>Champs dérivés</h4>
+      <div id="wzDerived" class="wz-der2">
+      <details class="fmt" id="detCalc">
+        <summary>ƒ Champs calculés <span class="meta" id="wzCalcN"></span></summary>
+        <div class="fmtgrid">
+          <input type="text" id="cName" placeholder="Nom (ex. Établissements pour 1000 hab.)" maxlength="60" aria-label="Nom du champ calculé">
+          <input type="text" id="cFormula" placeholder="Formule (ex. [Établissements] / [Habitants] * 1000)" maxlength="500" autocomplete="off" spellcheck="false" aria-label="Formule">
+          <select id="cIns" aria-label="Insérer un champ dans la formule"></select>
+          <button id="cSave" type="button">Enregistrer</button>
+        </div>
+        <p class="hint" id="cMsg" role="status">Formule sur les <b>sommes</b> du tableau : <code>[Champ]</code>, + − * / ^ ( ), ABS, SQRT, ROUND(x; 2), MIN, MAX, SI(cond; alors; sinon). <code>[Nombre de lignes]</code> = nombre de lignes de données. Division par zéro → cellule vide. Le champ apparaît ensuite dans la liste (bouton V).</p>
+        <div id="cList"></div>
+      </details>
+      <details class="fmt" id="detGrp">
+        <summary>▣ Groupes de valeurs <span class="meta" id="wzGrpN"></span></summary>
+        <div class="fmtgrid">
+          <select id="gSrc" aria-label="Champ à regrouper"></select>
+          <select id="gKind" aria-label="Type de regroupement"><option value="values">Regrouper des valeurs</option><option value="ranges">Tranches numériques (ex. âge)</option></select>
+          <input type="text" id="gName" placeholder="Nom du nouveau champ (ex. Âge en tranches)" maxlength="60" aria-label="Nom du nouveau champ">
+        </div>
+        <div id="gValues">
+          <input type="search" id="gSearch" placeholder="Filtrer les valeurs…" aria-label="Filtrer les valeurs du champ">
+          <div id="gList" class="jcols"></div>
+          <div class="fmtgrid"><input type="text" id="gLabel" placeholder="Nom du groupe (ex. Divorcé(e))" maxlength="60" aria-label="Nom du groupe"><button id="gAdd" type="button">Créer le groupe avec les valeurs cochées</button></div>
+          <div id="gDraft"></div>
+          <label class="meta">Valeurs non regroupées <select id="gRest"><option value="">Garder telles quelles</option><option value="other">Regrouper sous « Autres »</option></select></label>
+        </div>
+        <div id="gRanges" hidden>
+          <div class="fmtgrid"><input type="text" id="gBreaks" placeholder="Seuils : 17, 24, 34, 44, 54, 64, 74" autocomplete="off" aria-label="Seuils des tranches" title="Séparez les seuils par des virgules (décimales avec un point) ou par des points-virgules (décimales avec une virgule)"><span class="meta">ou tous les <input type="number" id="gStep" min="0" step="any" style="width:5em" aria-label="Pas régulier"> <button id="gAuto" type="button">Générer</button></span></div>
+          <select id="gEdge" aria-label="Sens des seuils"><option value="start">Chaque seuil est le début d'une tranche (18, 25 → 18–24, 25+)</option><option value="end">Chaque seuil est la fin d'une tranche, incluse (17, 24 → ≤ 17, 18–24, 25+)</option></select>
+          <input type="text" id="gLabels" placeholder="Libellés personnalisés (optionnel, séparés par « ; », un de plus que de seuils)" aria-label="Libellés des tranches">
+          <p class="hint" id="gPrev"></p>
+        </div>
+        <div class="bar"><button id="gSave" type="button">Enregistrer le groupe de valeurs</button><button id="gCancel" type="button" hidden>Annuler la modification</button></div>
+        <p class="hint" id="gMsg" role="status">Crée un <b>nouveau champ</b> (dans la liste des champs) à glisser en Lignes, Colonnes ou Filtres : regroupez des valeurs (ex. plusieurs états civils) ou découpez un nombre en tranches (ex. l'âge).</p>
+        <div id="gDefs"></div>
+      </details>
+      <details class="fmt" id="detMes">
+        <summary>Σ Mesures <span class="meta" id="wzMesN"></span></summary>
+        <div class="fmtgrid">
+          <input type="text" id="mName" placeholder="Nom (ex. Nombre de femmes)" maxlength="60" aria-label="Nom de la mesure">
+          <select id="mKind" aria-label="Type de mesure"><option value="count">Nombre de lignes (avec condition)</option><option value="pct">% de lignes (avec condition)</option><option value="value">Valeur d'un champ numérique (avec condition)</option></select>
+        </div>
+        <div class="fmtgrid" id="mValueRow" hidden><select id="mSrc" aria-label="Champ numérique"></select><select id="mAgg" aria-label="Agrégat par défaut"><option value="sum">Somme</option><option value="avg">Moyenne</option><option value="min">Minimum</option><option value="max">Maximum</option></select></div>
+        <p class="hint">Condition (facultative) : seules les lignes qui respectent <b>tous</b> les critères comptent. Plusieurs valeurs : séparez par « ; ».</p>
+        <div id="mConds"></div>
+        <datalist id="mVals"></datalist>
+        <div class="bar"><button id="mAddCond" type="button">+ Ajouter un critère</button><button id="mSave" type="button">Enregistrer la mesure</button><button id="mCancel" type="button" hidden>Annuler la modification</button></div>
+        <p class="hint" id="mMsg" role="status">Une <b>mesure</b> est un indicateur nommé, à poser dans <i>Valeurs</i> (bouton V), ex. « Nombre de femmes » (Gender = F), « % de femmes », « Âge moyen des femmes ». Elle peut aussi servir dans une formule de champ calculé.</p>
+        <div id="mDefs"></div>
+      </details>
+      </div>
+      <h4>Hiérarchies</h4>
+      <p class="hint">Ordre du plus large au plus fin (ex. Région › Province › Commune ; Année › Trimestre › Mois). Dans les filtres en pastilles, choisir « Wallonie » ne propose plus que les provinces wallonnes.</p>
+      <div id="wzHier"></div>
+      <div class="row wz-act"><button type="button" id="wzHierDetect">⚡ Détecter</button><button type="button" id="wzHierAdd">＋ Hiérarchie</button><span class="meta" id="wzHierMsg" role="status"></span></div>
+    </section>
+  </div>
+  <div class="row"><button type="button" id="wzPrev">← Précédent</button><span style="flex:1"></span><button type="button" id="wzNext" class="pri">Suivant →</button><button type="button" id="wzDone">Terminer</button></div>
+</dialog>
+<dialog id="dlgFilter">
+  <h3 id="fTitle" style="margin-top:0"></h3>
+  <input type="search" id="fSearch" placeholder="Rechercher…" style="width:100%">
+  <div class="row" style="justify-content:flex-start"><button id="fAll" title="Cocher toutes les valeurs correspondant à la recherche">Tout cocher (recherche)</button><button id="fNone" title="Décocher toutes les valeurs correspondant à la recherche">Tout décocher (recherche)</button></div>
+  <details id="fRules" class="frules">
+    <summary>Règles avancées : texte · plage · top / flop</summary>
+    <div class="frow"><b>Texte</b>
+      <select id="frtOp" aria-label="Condition de texte"><option value="contains">contient</option><option value="notcontains">ne contient pas</option><option value="starts">commence par</option><option value="ends">finit par</option><option value="equals">est égal à</option></select>
+      <input type="text" id="frtQ" placeholder="ex. Anvers ; Gand (« ; » = ou)" maxlength="200" aria-label="Texte recherché"></div>
+    <div class="frow" id="frRange"><b>Plage</b> de <input id="frrMin" aria-label="Minimum"> à <input id="frrMax" aria-label="Maximum"></div>
+    <div class="frow"><b>Top</b> garder les
+      <select id="frtMode" aria-label="Premiers ou derniers"><option value="top">premiers</option><option value="flop">derniers</option></select>
+      <input type="number" id="frtN" min="1" max="1000" step="1" placeholder="N" aria-label="Nombre de valeurs à garder">
+      selon <select id="frtAgg" aria-label="Agrégat de classement"><option value="sum">la somme</option><option value="avg">la moyenne</option><option value="count">le nombre</option><option value="max">le max</option><option value="min">le min</option></select>
+      de <select id="frtBy" aria-label="Champ de classement"></select></div>
+    <p class="hint">Les règles se cumulent entre elles et avec les cases cochées ci-dessous. Le top est classé après application des autres filtres. <button type="button" id="fRClear" class="linkbtn">Effacer les règles</button></p>
+  </details>
+  <div id="fList"></div>
+  <div class="row"><button class="pri" id="fOk">OK</button></div>
+</dialog>
+
+<dialog id="dlgProj" style="max-width:min(900px,96vw)">
+  <h3 style="margin-top:0">Projets</h3>
+  <p class="hint">Un <b>projet</b> regroupe tout votre tableau de bord : fichiers sources (jointures et champs calculés compris), onglets, graphiques, tuiles et mise en page. Il est <b>enregistré automatiquement</b> sur cet appareil. « Nouveau projet » repart d'un tableau de bord vide (un seul onglet vide) : chargez-y un autre fichier source. L'export crée un fichier <code>.json</code> qui <b>contient les données</b> de vos fichiers.</p>
+  <div id="projList"></div>
+  <div class="row" style="justify-content:flex-start">
+    <input type="text" id="projNewName" maxlength="60" placeholder="Nom du nouveau projet" aria-label="Nom du nouveau projet">
+    <button type="button" id="projNew" class="pri">Nouveau projet</button>
+    <button type="button" id="projImport">Importer un projet…</button>
+    <button type="button" id="projSave" title="Enregistre tout de suite le projet ouvert (utile si la mémorisation automatique est désactivée)">Enregistrer maintenant</button>
+    <input type="file" id="projFile" accept=".json,application/json" hidden>
+  </div>
+  <p class="hint" id="projMsg" role="status"></p>
+  <div class="row"><button type="button" id="projClose">Fermer</button></div>
+</dialog>
+
+<dialog id="dlgListCols">
+  <h3 style="margin-top:0">Colonnes de la liste</h3>
+  <input type="search" id="lcSearch" placeholder="Rechercher un champ…" style="width:100%" aria-label="Rechercher un champ">
+  <div class="row" style="justify-content:flex-start"><button type="button" id="lcAll">Tout cocher</button><button type="button" id="lcNone">Tout décocher</button></div>
+  <div id="lcList" class="jcols"></div>
+  <div class="row"><button type="button" class="pri" id="lcOk">OK</button></div>
+</dialog>
+
+<dialog id="dlgPreview" style="max-width:min(1250px,96vw)">
+  <h3 style="margin-top:0">Aperçu et contrôle des données</h3>
+  <div class="pvtabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" data-pv="qual" class="on">Contrôle qualité</button>
+    <button type="button" role="tab" data-pv="rows">Aperçu des lignes</button>
+    <button type="button" role="tab" data-pv="raw">Fichiers bruts</button>
+  </div>
+  <div id="pvQual" class="pvpane"><p id="pvSum" class="hint" role="status"></p><ul id="pvIssues" class="pvissues"></ul><div class="pvscroll"><table id="pvProf" class="map pvt"></table></div></div>
+  <div id="pvRows" class="pvpane" hidden><p class="hint" id="pvRowsInfo"></p><div class="pvscroll" id="pvRowsBox"></div></div>
+  <div id="pvRaw" class="pvpane" hidden><label class="meta">Source <select id="pvSrc" aria-label="Source à afficher"></select></label><p class="hint" id="pvRawInfo"></p><div class="pvscroll" id="pvRawBox"></div></div>
+  <div class="row"><button id="pvCsv" type="button">Exporter le rapport (CSV)</button><button class="pri" id="pvClose" type="button">Fermer</button></div>
+</dialog>
+
+<dialog id="dlgJoin">
+  <h3 style="margin-top:0">Jointures entre fichiers</h3>
+  <p class="hint">Une jointure rattache à chaque ligne d'une source (<b>gauche</b>) les colonnes d'une autre source (<b>droite</b>) qui ont la <b>même clé</b> (ex. code NIS ou nom de commune → province). Le résultat apparaît comme une nouvelle source « ⨝ … » recalculée à chaque actualisation des fichiers. Clés comparées sans casse ni accents (« 01001 » = 1001).</p>
+  <div id="jList"></div>
+  <fieldset class="jform">
+    <legend id="jLegend">Nouvelle jointure</legend>
+    <div class="frow"><b>Nom</b> <input type="text" id="jName" maxlength="60" placeholder="ex. Communes + provinces" aria-label="Nom de la jointure"></div>
+    <div class="frow"><b>Gauche</b> <select id="jLeft" aria-label="Source de gauche"></select> <b>Droite</b> <select id="jRight" aria-label="Source de droite"></select></div>
+    <div class="frow"><b>Clés</b></div>
+    <div id="jKeys"></div>
+    <div class="frow"><b>Type</b> <select id="jType" aria-label="Type de jointure"><option value="left">Garder toutes les lignes de gauche</option><option value="inner">Ne garder que les lignes avec correspondance</option></select></div>
+    <div class="frow"><b>Doublons</b> <select id="jDup" aria-label="Plusieurs lignes à droite pour une même clé"><option value="first">Si plusieurs lignes à droite : garder la première</option><option value="all">Si plusieurs lignes à droite : toutes (multiplie les lignes)</option></select></div>
+    <div class="frow"><b>Colonnes de droite</b> <span class="meta">à ajouter :</span></div>
+    <div id="jCols" class="jcols"></div>
+    <label class="meta"><input type="checkbox" id="jOff" checked> Désactiver les deux sources d'origine (évite de compter les lignes deux fois)</label>
+    <p class="hint" id="jPrev" role="status"></p>
+  </fieldset>
+  <div class="row"><button id="jNew" type="button">Nouvelle</button><button id="jClose" type="button">Fermer</button><button class="pri" id="jSave" type="button">Enregistrer la jointure</button></div>
+</dialog>
+
+<dialog id="dlgMap">
+  <h3 style="margin-top:0">Colonnes &amp; fusion</h3>
+  <p class="hint">Chaque colonne est rattachée à un <b>champ unifié</b>. Deux colonnes qui portent le même nom (sans tenir compte de la casse, des accents ni de la ponctuation) sont fusionnées automatiquement. Pour fusionner des noms différents, saisissez le même champ unifié ; décochez « Inclure » pour exclure la colonne (aussi possible avec ⊘ dans la liste des champs). Les champs orange ne figurent pas dans toutes les sources.</p>
+  <div id="mapSum" class="zc"></div>
+  <div id="mapBody"></div>
+  <div class="row"><button id="mapSuggest">Suggérer des fusions</button><button id="mapCancel">Annuler</button><button class="pri" id="mapOk">Appliquer</button></div>
+</dialog>
+
+<dialog id="dlgDetail" style="max-width:96vw">
+  <h3 id="dTitle" style="margin-top:0"></h3>
+  <div id="dBody" style="max-height:62vh;overflow:auto"></div>
+  <div class="row"><button id="dXlsx">Exporter XLSX</button><button class="pri" id="dClose">Fermer</button></div>
+</dialog>
+
+<script src="../vendor/xlsx/xlsx.full.min.js"></script>
+<script>
+/* Modules du pivot : rechargés à chaque ouverture (évite qu'un ancien app.js gardé en cache fonctionne avec une page HTML neuve). */
+(function () { var v = Date.now(); ['engine','format','import','export','xlsx','chart-axis','chart-trend','chart-cartesian','chart-capabilities','chart','chart-more','chart-editor','cube','hier','geo','calc','groups','measures','join','quality','layouts','session','app','app-donnees','app-navigation','app-vues','app-assistant','app-filtres','app-graphique','app-tableau','app-derives','app-dialogues','app-evenements','app-projets','app-init-donnees','app-init-vues','app-init-graphique','app-init-evenements','app-init-projets'].forEach(function (n) { document.write('<script src="pivot/' + n + '.js?v=' + v + '"><\/script>'); }); })();
+</script>
+</body>
+</html>

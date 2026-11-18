@@ -1,0 +1,6 @@
+# Ne pas envoyer à Vercel (le script de build vit dans outils/ : tools/ est supprimé avant le build)
+tests/
+tools/
+.github/
+.claude/
+eslint.config.mjs

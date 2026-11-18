@@ -1,0 +1,18 @@
+{
+  "name": "statbel-pivot",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tableaux croisés dynamiques 100 % locaux (statique). Les devDependencies ne servent qu'aux tests et au lint, jamais à l'outil livré.",
+  "scripts": {
+    "test": "node tools/run-tests.js",
+    "lint": "eslint tests tools outils/build-pivot-site.js --max-warnings 0",
+    "build": "node outils/build-pivot-site.js",
+    "pretest": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "playwright": "^1.65.0"
+  }
+}
