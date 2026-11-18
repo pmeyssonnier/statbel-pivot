@@ -31,7 +31,7 @@ const tpo = p => p.evaluate(() => { if (!document.body.classList.contains('tp-op
 const tpc = p => p.evaluate(() => { if (document.body.classList.contains('tp-open')) document.getElementById('btnTbOpts').click(); });
 const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-open')) document.getElementById('btnChOpts').click(); });   // ouvre le panneau « ⚙ Graphique » (tiroir)
 // Session mémorisée : validation de ce qui est relu d'IndexedDB (parties pures)
-const SSM = require('../outils/pivot/session.js');
+const SSM = require('../pivot/session.js');
 
 // ---------- UI ----------
 (async () => {

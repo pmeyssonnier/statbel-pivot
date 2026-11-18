@@ -165,7 +165,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
   A(col.ovA === 'visible' && col.ovF === 'visible', 'grand écran : aucun ascenseur dans la colonne de gauche (sources, champs)');
   A(col.zRightOfA && col.zAboveT && col.zTop && col.tW > col.aW * 3, 'grand écran : champs à gauche, zones (Filtres, Colonnes, Lignes, Valeurs) au-dessus du tableau/graphique de la tuile, à droite (' + Math.round(col.aW) + ' | ' + Math.round(col.tW) + ' px)');
   const expMods = (fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8').match(/\[('engine'[^\]]*)\]\.forEach/) || ['', ''])[1].split(',').map(x => x.trim().replace(/'/g, ''));
-  A(expMods.length >= 19 && expMods.every(m => fs.existsSync(path.join(__dirname, '../outils/pivot/' + m + '.js'))) && await pd.evaluate(exp => { const src = [...document.querySelectorAll('script[src*="outils/pivot/"]')].map(x => x.getAttribute('src')); return src.length === exp.length && src.every((x, i) => new RegExp('^outils/pivot/' + exp[i] + '\\.js\\?v=\\d+$').test(x)); }, expMods), 'modules du pivot rechargés à chaque ouverture, dans l\'ordre du chargeur (pas de vieux fichier en cache ; la liste attendue est lue dans la page)');
+  A(expMods.length >= 19 && expMods.every(m => fs.existsSync(path.join(__dirname, '../pivot/' + m + '.js'))) && await pd.evaluate(exp => { const src = [...document.querySelectorAll('script[src*="pivot/"]')].map(x => x.getAttribute('src')); return src.length === exp.length && src.every((x, i) => new RegExp('^pivot/' + exp[i] + '\\.js\\?v=\\d+$').test(x)); }, expMods), 'modules du pivot rechargés à chaque ouverture, dans l\'ordre du chargeur (pas de vieux fichier en cache ; la liste attendue est lue dans la page)');
   const stick = await pd.evaluate(() => { const th = [...document.querySelectorAll('#out thead tr:nth-child(2) th')].find(x => !x.classList.contains('fc')); return { pos: getComputedStyle(th).position, top: th.style.top, h1: document.querySelector('#out thead tr').getBoundingClientRect().height }; });
   A(stick.pos === 'sticky' && Math.abs(parseFloat(stick.top) - stick.h1) < 1, 'grand écran : en-têtes collants, 2e ligne sous la 1re (' + stick.top + ' ≈ ' + Math.round(stick.h1) + ' px)');
   const wA = await pd.evaluate(() => document.querySelector('#out').getBoundingClientRect().width);
@@ -438,7 +438,7 @@ const cpo = p => p.evaluate(() => { if (!document.body.classList.contains('cp-op
     A(hiddenL2 && shownDash && popDash && closed && swap && popFocus && (await pcf.$('#btnSrc')) === null, 'PC : « ⚙ Configurer » (absent quand le panneau de gauche est affiché) ouvre fichiers, champs et zones en panneau flottant en tableau de bord et en mode agrandi ; Échap le ferme');
     await ctxP.close(); }
   // Assistant « Projet » : étapes, hiérarchies (détection, édition), filtres en cascade, mémorisation
-  { const H = require('../outils/pivot/hier.js');
+  { const H = require('../pivot/hier.js');
     const rows = [{ r: 'F', p: 'A', c: 'a1' }, { r: 'F', p: 'L', c: 'l1' }, { r: 'W', p: 'H', c: 'h1' }, { r: 'W', p: 'Li', c: 'li1' }], dimOf = k => row => row[k];
     const hier = [{ name: 'Géo', levels: ['r', 'p', 'c'] }];
     A(JSON.stringify(H.sanitize([{ name: ' Géo ', levels: ['r', 'p', 'p', 'c'] }, { name: 'géo', levels: ['a', 'b'] }, { name: 'X', levels: ['a'] }, { name: '', levels: ['a', 'b'] }, null])) === JSON.stringify([{ name: 'Géo', levels: ['r', 'p', 'c'] }]), 'hiérarchies : nettoyées (noms uniques, ≥ 2 niveaux, pas de doublon de niveau)');

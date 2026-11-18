@@ -302,7 +302,7 @@ const wellFormed = xml => { const st = []; const re = /<(\/?)([A-Za-z_][\w:.-]*)
   pl.on('pageerror', e => errs.push(e.message));
   await pl.goto(srv.url + '/index.html', { waitUntil: 'load' });
   await pl.setInputFiles('#fileIn', [fBig]); await pl.waitForTimeout(500);
-  { const pvv = fs.readFileSync(path.join(__dirname, '../outils/pivot/app.js'), 'utf8').match(/PIVOT_VERSION = '(\d+\.\d+\.\d+)'/)[1]; A(await pl.textContent('#pvVer') === 'v' + pvv && fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8').includes('Pivot ' + pvv), 'version : numéro affiché à côté du titre, identique à celui du CHANGELOG'); }
+  { const pvv = fs.readFileSync(path.join(__dirname, '../pivot/app.js'), 'utf8').match(/PIVOT_VERSION = '(\d+\.\d+\.\d+)'/)[1]; A(await pl.textContent('#pvVer') === 'v' + pvv && fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8').includes('Pivot ' + pvv), 'version : numéro affiché à côté du titre, identique à celui du CHANGELOG'); }
   { const pvr = await ctxL.newPage(); await pvr.route('**/index.html', async r => { const rs = await r.fetch(); await r.fulfill({ response: rs, body: (await rs.text()).replace(/<small id="pvVer"[^>]*><\/small>/, '') }); }); await pvr.goto(srv.url + '/index.html', { waitUntil: 'load' }); A(/^v\d+\.\d+\.\d+$/.test(await pvr.textContent('header #pvVer')) && await pvr.isVisible('#pvVer'), 'version : badge ajouté par le script même avec une page HTML en cache sans élément'); await pvr.close(); }
   A(await pl.isHidden('#listBar') && await pl.inputValue('#optMode') === 'pivot', 'liste : mode « Tableau croisé » par défaut, barre de liste masquée');
   await pl.selectOption('#optMode', 'list'); await pl.waitForTimeout(300);

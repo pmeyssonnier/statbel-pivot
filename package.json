@@ -5,8 +5,8 @@
   "description": "Tableaux croisés dynamiques 100 % locaux (statique). Les devDependencies ne servent qu'aux tests et au lint, jamais à l'outil livré.",
   "scripts": {
     "test": "node tools/run-tests.js",
-    "lint": "eslint tests tools outils/build-pivot-site.js --max-warnings 0",
-    "build": "node outils/build-pivot-site.js",
+    "lint": "eslint tests tools build-pivot-site.js --max-warnings 0",
+    "build": "node build-pivot-site.js",
     "pretest": "playwright install chromium"
   },
   "devDependencies": {
