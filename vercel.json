@@ -19,7 +19,7 @@
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     },
     {
-      "source": "/pivot/(.*)",
+      "source": "/(css|js)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     }
   ]

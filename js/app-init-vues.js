@@ -1,4 +1,4 @@
-/* pivot/app-init-vues.js — Interface du tableau croisé (index.html) : Démarrage (2/5) : vues, tableau de bord, assistant « Projet », barre de filtres.
+/* js/app-init-vues.js — Interface du tableau croisé (index.html) : Démarrage (2/5) : vues, tableau de bord, assistant « Projet », barre de filtres.
  * Chargé APRÈS tous les fichiers app*.js (fonctions et constantes existent alors). Les instructions sont dans l'ordre EXACT de l'ancien
  * app.js (IIFE unique découpée), réparties sur les cinq fichiers app-init-* : ne pas les réordonner ni changer l'ordre de chargement. */
 'use strict';

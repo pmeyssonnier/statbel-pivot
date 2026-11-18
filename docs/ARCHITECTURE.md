@@ -1,4 +1,4 @@
-# Tableaux croisés dynamiques — carte des modules
+# Architecture — carte des modules (`js/`)
 
 Outil mainteneur `index.html` : 100 % local, ouvrable en double-clic (`file://`). Les modules sont des **scripts classiques**
 (globales `window.Pivot…`, parties pures testables sous Node via `module.exports`), chargés dans l'ordre ci-dessous par un chargeur inline
@@ -70,16 +70,15 @@ Les dispositions enregistrées (`layouts.js`) **ne contiennent pas** de graphiqu
 
 - **Ajouter une option de graphique** : `normOpts` (valeur, borne, défaut) → `DEFS` dans `chart-editor.js` (+ `PANEL_ID` si le panneau doit la porter) → la déclarer dans `chart-capabilities.js` pour les types concernés → la lire dans le moteur (`O.x`). Panneau et fenêtre de tuile sont générés : **rien d'autre à écrire**. Les tests « une option non applicable ne change jamais le rendu » valident le registre.
 - **Ajouter un type de graphique** : l'ajouter à `TYPES` (`chart.js`) et le construire (`PivotChart.register` dans `chart-more.js`, ou rendu dédié), titre via `c.title(texte_par_défaut)`, puis l'ajouter au registre des capacités.
-- **Ajouter un module** : fichier dans `pivot/`, nom ajouté au chargeur de `index.html` (avant `app.js` ; l'interface `app*.js` et ses fichiers de démarrage `app-init-*` se chargent en dernier), partie pure exportée via `module.exports` pour les tests.
+- **Ajouter un module** : fichier dans `js/`, nom ajouté au chargeur de `index.html` (avant `app.js` ; l'interface `app*.js` et ses fichiers de démarrage `app-init-*` se chargent en dernier), partie pure exportée via `module.exports` pour les tests.
 - **Persister un nouveau réglage de vue** : `captureView` / `snapshot` / restauration (`app-projets.js`) **et** son assainissement dans `session.js` (`sanitizeState`).
 
 ## Vérifier
 
 ```bash
-node tools/run-tests.js "tests/pivot-tool-*.test.js"   # suites du pivot, en parallèle (moteur pur + 3 suites Playwright headless)
-npx eslint js tests --max-warnings 0                 # lint
-npx --yes jscpd@5.4.2 pivot --min-tokens 40 --min-lines 4   # duplication (seuil du dépôt : 2 %)
-node tools/gen-code-map.js                           # régénère docs/carte-du-code.html
+node tools/run-tests.js "tests/pivot-tool-*.test.js"   # suites du pivot, en parallèle (moteur pur + 4 suites Playwright headless)
+npm run lint                                         # lint (tests + scripts Node ; js/ n'est pas linté)
+npx --yes jscpd@5.4.2 js --min-tokens 40 --min-lines 4   # duplication (seuil du dépôt : 2 %)
 ```
 
 Version : `PIVOT_VERSION` (`app.js`, cœur) + ligne « Pivot x.y.z » du `CHANGELOG.md` (testée) ; numérotation par jalons majeurs, tags `pivot-vX.Y.Z`.
@@ -88,7 +87,7 @@ Version : `PIVOT_VERSION` (`app.js`, cœur) + ligne « Pivot x.y.z » du `CHANGE
 
 L'outil ouvre des fichiers Excel / CSV quelconques : il est publié sur **sa propre origine** (https://statbel-pivot.vercel.app/), distincte de celle des PWA d'enquête (`localStorage` / IndexedDB non partagés).
 
-- `node build-pivot-site.js` assemble `dist-pivot/` (même arborescence relative que le dépôt : la page lit `vendor/…` et `pivot/…`) : `index.html` (la page de l'outil, seul point d'entrée), `robots.txt` (aucune indexation), `pivot/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/pivot-tool-site.test.js`.
+- `node build-pivot-site.js` assemble `dist-pivot/` (même arborescence relative que le dépôt : la page lit `vendor/…`, `css/…` et `js/…`) : `index.html` (la page de l'outil, seul point d'entrée), `robots.txt` (aucune indexation), `css/*.css`, `js/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/pivot-tool-site.test.js`.
 - Réglages Vercel : Root Directory `.` · Framework *Other* · **Install Command** `true` · **Build Command** `node build-pivot-site.js` · **Output Directory** `dist-pivot` · production sur `main`.
 - Le script de build vit à la racine et non dans `tools/` : `.vercelignore` supprime `tools/` avant le build.
 - La page reste aussi ouvrable en double-clic depuis le dépôt (`file://`).

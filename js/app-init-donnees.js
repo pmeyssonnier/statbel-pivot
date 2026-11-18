@@ -1,4 +1,4 @@
-/* pivot/app-init-donnees.js — Interface du tableau croisé (index.html) : Démarrage (1/5) : état, fichiers, jointures, aperçu, navigation, accordéons, info-bulle.
+/* js/app-init-donnees.js — Interface du tableau croisé (index.html) : Démarrage (1/5) : état, fichiers, jointures, aperçu, navigation, accordéons, info-bulle.
  * Chargé APRÈS tous les fichiers app*.js (fonctions et constantes existent alors). Les instructions sont dans l'ordre EXACT de l'ancien
  * app.js (IIFE unique découpée), réparties sur les cinq fichiers app-init-* : ne pas les réordonner ni changer l'ordre de chargement. */
 'use strict';

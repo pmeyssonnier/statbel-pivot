@@ -5,8 +5,8 @@
  * Pourquoi : l'outil ouvre des fichiers Excel / CSV quelconques. Servi sur la même adresse que les PWA, son code est de la même
  * ORIGINE qu'Interviews (même localStorage / IndexedDB, donc les contacts). Un second projet Vercel, sur une autre adresse, l'isole.
  *
- * Sortie : dist-pivot/ (ou --out <dossier>), avec la MÊME arborescence relative que le dépôt (la page lit `vendor/…` et `pivot/…`) :
- *   index.html (la page de l'outil, seul point d'entrée), robots.txt (aucune indexation), pivot/*.js,
+ * Sortie : dist-pivot/ (ou --out <dossier>), avec la MÊME arborescence relative que le dépôt (la page lit `vendor/…`, `css/…` et `js/…`) :
+ *   index.html (la page de l'outil, seul point d'entrée), robots.txt (aucune indexation), css/*.css, js/*.js,
  *   vendor/xlsx/xlsx.full.min.js, vendor/geo/geo-data.js.   Aucun service worker, aucun fichier des applications.
  *
  * Usage :  node build-pivot-site.js [--out <dossier>]      (Vercel : Build Command, Output Directory = dist-pivot)
@@ -20,7 +20,7 @@ const i = process.argv.indexOf('--out');
 const OUT = path.resolve(i > 0 && process.argv[i + 1] ? process.argv[i + 1] : path.join(ROOT, 'dist-pivot'));
 
 const FICHIERS = ['index.html', 'vendor/xlsx/xlsx.full.min.js', 'vendor/geo/geo-data.js'];
-const DOSSIERS = [['pivot', f => f.endsWith('.js')]];   // modules du pivot (la README reste dans le dépôt)
+const DOSSIERS = [['css', f => f.endsWith('.css')], ['js', f => f.endsWith('.js')]];   // feuille de style et modules de l'outil
 
 function copier(rel) {
   const src = path.join(ROOT, rel);
@@ -40,4 +40,4 @@ DOSSIERS.forEach(([dir, garde]) => fs.readdirSync(path.join(ROOT, dir)).filter(g
 
 fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 
-console.log('✓ Site du pivot : ' + (n + 2) + ' fichiers, ' + Math.round(octets / 1024) + ' Ko → ' + path.relative(ROOT, OUT));
+console.log('✓ Site du pivot : ' + (n + 1) + ' fichiers, ' + Math.round(octets / 1024) + ' Ko → ' + path.relative(ROOT, OUT));
