@@ -6,7 +6,7 @@ Outil mainteneur `index.html` : 100 % local, ouvrable en double-clic (`file://`)
 
 ## Ordre de chargement et responsabilités
 
-Trois sous-dossiers, chargés dans cet ordre : **`js/core/`** (moteur et entrées / sorties, sans interface : `engine`, `format`, `import`, `export`, `xlsx`), **`js/features/`** (une fonctionnalité par module : graphiques `chart*`, `cube`, `hier`, `geo`, `calc`, `groups`, `measures`, `join`, `quality`, `layouts`, `session`), **`js/ui/`** (interface : `app*.js`). Un module de `features/` peut dépendre de `core/`, jamais l'inverse ; seul `ui/` dépend de tout.
+Trois sous-dossiers : **`js/core/`** (moteur et entrées / sorties, sans interface : `engine`, `format`, `import`, `export`, `xlsx`), **`js/features/`** (une fonctionnalité par module, sans fenêtre ni panneau : rendu des graphiques `chart`, `chart-axis`, `chart-trend`, `chart-cartesian`, `chart-capabilities`, `chart-more`, puis `hier`, `geo`, `calc`, `groups`, `measures`, `join`, `quality`, `layouts`, `session`), **`js/ui/`** (interface : `app*.js`, plus `chart-editor` et `cube` qui génèrent des panneaux et des fenêtres). L'ordre de chargement est celui du tableau ci-dessous, pas celui des dossiers : `chart-editor` et `cube` se chargent avant `hier`. Un module de `features/` peut dépendre de `core/`, jamais l'inverse ; seul `ui/` dépend de tout.
 
 | Module | Rôle |
 |---|---|
