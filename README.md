@@ -34,3 +34,7 @@ Projet `statbel-pivot` connecté à ce dépôt : Root Directory `.` · Framework
 ## Historique
 
 Le code vient de `statbel-app` (dossiers `outils/pivot/` et `vendor/geo`). L'historique git antérieur à l'extraction reste dans ce dépôt-là ; les jalons de version sont repris dans [`CHANGELOG.md`](CHANGELOG.md).
+
+## Licence
+
+Tous droits réservés : voir [`LICENSE`](LICENSE). Les composants de `vendor/` gardent leurs propres licences.
