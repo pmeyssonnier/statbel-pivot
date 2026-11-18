@@ -1,9 +1,9 @@
 /*
- * Test du site AUTONOME du pivot (build-pivot-site.js) : le dossier assemblé contient l'outil et rien des applications,
+ * Test du site AUTONOME du pivot (build.js) : le dossier assemblé contient l'outil et rien des applications,
  * et la page y fonctionne depuis une racine à elle (sans le reste du dépôt) : version affichée, SheetJS chargé, aucune erreur JS.
  * (Un second projet Vercel la sert sur une autre origine que les PWA : cf. docs/ARCHITECTURE.md.)
  *
- * Lancer :  CHROMIUM_PATH=… node tests/pivot-tool-site.test.js
+ * Lancer :  CHROMIUM_PATH=… node tests/site.test.js
  */
 const path = require('path'), fs = require('fs'), os = require('os'), cp = require('child_process');
 const { chromium } = (()=>{try{return require('playwright-core')}catch(e){return require('playwright')}})();
@@ -15,7 +15,7 @@ const A = (cond, msg) => { if (!cond) { fails++; console.log('✗ FAIL ' + msg);
 
 (async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pivot-site-'));
-  const out = cp.execFileSync('node', [path.join(__dirname, '..', 'build-pivot-site.js'), '--out', dir], { encoding: 'utf8' });
+  const out = cp.execFileSync('node', [path.join(__dirname, '..', 'build.js'), '--out', dir], { encoding: 'utf8' });
   const ls = d => fs.readdirSync(path.join(dir, d)).sort();
   const sources = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')).sort();
   const styles = fs.readdirSync(path.join(__dirname, '..', 'css')).filter(f => f.endsWith('.css')).sort();

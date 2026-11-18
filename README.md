@@ -13,10 +13,10 @@ Tableaux croisés dynamiques **100 % locaux** sur fichiers Excel / CSV variés (
 | `css/` | Feuille de style `pivot.css` |
 | `js/` | Modules de l'outil (scripts classiques, chargés dans l'ordre par la page) |
 | `vendor/` | Bibliothèques vendorisées (SheetJS, fonds de carte) — jamais de CDN |
-| `tests/` | 5 suites headless `pivot-tool-*.test.js` |
+| `tests/` | 5 suites headless (`moteur`, `projets`, `site`, `tableau`, `tuiles`) |
 | `tools/` | Scripts mainteneur (lanceur de tests, génération des fonds de carte) |
 | `docs/` | Documentation technique (`ARCHITECTURE.md`) |
-| `build-pivot-site.js` | Assemble `dist-pivot/` (ce que publie Vercel) |
+| `build.js` | Assemble `dist/` (ce que publie Vercel) |
 
 ## Développement
 
@@ -24,12 +24,12 @@ Tableaux croisés dynamiques **100 % locaux** sur fichiers Excel / CSV variés (
 npm ci
 npm run lint     # ESLint « prudent » (tests + scripts Node)
 npm test         # 5 suites headless (Chromium via Playwright), ~1 min 15 s en local
-npm run build    # assemble dist-pivot/ (ce que publie Vercel)
+npm run build    # assemble dist/ (ce que publie Vercel)
 ```
 
 ## Déploiement (Vercel)
 
-Projet `statbel-pivot` connecté à ce dépôt : Root Directory `.` · Framework *Other* · **Install Command** `true` · **Build Command** `node build-pivot-site.js` · **Output Directory** `dist-pivot` · production sur `main`. Le script de build vit à la racine (et non dans `tools/`) car `.vercelignore` supprime `tools/` avant le build.
+Projet `statbel-pivot` connecté à ce dépôt : Root Directory `.` · Framework *Other* · production sur `main`. Install Command (`true`), Build Command (`node build.js`) et Output Directory (`dist`) sont fixés par `vercel.json`, qui prime sur les réglages du projet. Le script de build vit à la racine (et non dans `tools/`) car `.vercelignore` supprime `tools/` avant le build.
 
 ## Historique
 

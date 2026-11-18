@@ -13,17 +13,10 @@
  * Les suites les plus lentes partent EN PREMIER (LENTES) : le temps de mur se rapproche du minimum
  * (sinon une suite de 40 s lancée en dernier rallonge d'autant la fin).
  *
- * MODE RAPIDE (`--rapide`, `npm run test:fast`) : ne lance que les suites concernées par les fichiers
- * modifiés (branche vs origin/main + arbre de travail) — celles qui citent le fichier, celles de l'app touchée
- * (Convertisseur / Planner) et toutes les suites sans navigateur. Fichiers « neutres » (sw.js, README,
- * CHANGELOG, docs, tests, tools) ignorés ; dès qu'un fichier hors Convertisseur/Planner change (Interviews,
- * css, partagé…), le périmètre ne se borne plus → suite complète. À réserver à l'itération : la suite
- * COMPLÈTE reste la référence avant PR.
- *
  *   npm test                           # toute la suite, en parallèle
- *   npm run test:fast                  # seulement les suites concernées par vos modifications
  *   TEST_CONCURRENCY=1 npm test        # forcer le séquentiel (debug)
- *   npm run test:one tests/x.test.js   # un seul fichier
+ *   node tools/run-tests.js tests/moteur.test.js     # un seul fichier
+ *   node tools/run-tests.js "tests/t*.test.js"       # un motif (joker *)
  */
 const { execFile } = require('node:child_process');
 const os = require('node:os');
@@ -41,14 +34,11 @@ if (!chromium || !fs.existsSync(chromium)) {
 }
 
 const testsDir = path.join(__dirname, '..', 'tests');
-const RAPIDE = process.argv.includes('--rapide');
 const arg = process.argv.slice(2).find(a => !a.startsWith('--'));
-// --sans=<motif> : écarte les suites dont le nom correspond (joker *), ex. --sans=pivot-tool-* (CI : PR sans lien avec le pivot).
-const SANS = (process.argv.find(a => a.startsWith('--sans=')) || '').slice(7);
 // Suites les plus lentes (mesurées) : lancées en premier. Les autres suivent par ordre alphabétique.
-const LENTES = ['pivot-tool-tuiles', 'pivot-tool-projets', 'pivot-tool-tableau'];
+const LENTES = ['tuiles', 'projets', 'tableau'];
 const rang = f => { const i = LENTES.indexOf(path.basename(f, '.test.js')); return i < 0 ? LENTES.length : i; };
-// Motif « tests/pivot-tool-*.test.js » : toutes les suites dont le nom correspond (joker *) ; sinon un seul fichier.
+// Motif « tests/t*.test.js » : toutes les suites dont le nom correspond (joker *) ; sinon un seul fichier.
 const parMotif = g => {
   const re = new RegExp('^' + path.basename(g).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
   return fs.readdirSync(testsDir).filter(f => re.test(f)).sort().map(f => path.join(testsDir, f));
@@ -56,34 +46,7 @@ const parMotif = g => {
 let files = arg
   ? (arg.includes('*') ? parMotif(arg) : [path.resolve(arg)])
   : fs.readdirSync(testsDir).filter(f => f.endsWith('.test.js')).sort().map(f => path.join(testsDir, f));
-if (SANS) { const re = new RegExp('^' + SANS.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '\\.test\\.js$'); files = files.filter(f => !re.test(path.basename(f))); }
 files.sort((a, b) => rang(a) - rang(b));
-
-// Fichiers modifiés : commits de la branche vs origin/main + arbre de travail (modifiés et non suivis).
-function fichiersModifies() {
-  const git = args => { try { return require('node:child_process').execFileSync('git', args, { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).split('\n').filter(Boolean); } catch { return null; } };
-  const a = git(['diff', '--name-only', 'origin/main...HEAD']), b = git(['diff', '--name-only', 'HEAD']), c = git(['ls-files', '--others', '--exclude-standard']);
-  return a === null && b === null ? null : [...new Set([...(a || []), ...(b || []), ...(c || [])])];
-}
-const NEUTRE = /^(sw\.js|README\.md|CHANGELOG\.md|CLAUDE\.md|docs\/|tests\/|tools\/|\.github\/|\.claude\/|package(-lock)?\.json|eslint\.config\.)/;
-function selectionRapide(tous) {
-  const modifies = fichiersModifies();
-  if (!modifies) return { files: tous, note: 'git indisponible → suite complète' };
-  const utiles = modifies.filter(f => !NEUTRE.test(f));
-  const app = f => /^(statbel_converter\.html|js\/converter\/)/.test(f) ? 'converter' : /^(statbel_planner\.html|js\/planner\/)/.test(f) ? 'planner' : null;
-  if (utiles.some(f => !app(f))) return { files: tous, note: 'périmètre large (' + utiles.find(f => !app(f)) + ') → suite complète' };
-  const apps = new Set(utiles.map(app));
-  const modTests = new Set(modifies.filter(f => /^tests\/.*\.test\.js$/.test(f)).map(f => path.basename(f)));
-  const motifs = [...apps].map(x => new RegExp(x === 'converter' ? 'statbel_converter|js/converter|converter' : 'statbel_planner|js/planner|planner'));
-  const bases = utiles.map(f => path.basename(f));
-  const retenu = tous.filter(f => {
-    const src = fs.readFileSync(f, 'utf8');
-    return modTests.has(path.basename(f)) || !/chromium|playwright/.test(src) || motifs.some(r => r.test(src)) || bases.some(b => src.includes(b));
-  });
-  return { files: retenu, note: 'périmètre : ' + ([...apps].join(' + ') || 'aucun fichier applicatif') };
-}
-let noteRapide = '';
-if (RAPIDE && !arg) { const r = selectionRapide(files); files = r.files; noteRapide = r.note; }
 
 const env = { ...process.env, CHROMIUM_PATH: chromium };
 // Concurrence : réglable, bornée par le nombre de fichiers. Défaut = min(cœurs, 4)
@@ -101,7 +64,7 @@ function runOne(f) {
 
 (async () => {
   console.log(`Chromium : ${chromium}`);
-  console.log(`Parallélisme : ${CONC} · ${files.length} suite(s)` + (RAPIDE ? ` · mode rapide (${noteRapide})` : '') + '\n');
+  console.log(`Parallélisme : ${CONC} · ${files.length} suite(s)` + '\n');
   const failed = [];
   let next = 0;
   async function worker() {

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /*
- * build-pivot-site.js — assemble le SITE AUTONOME de l'outil « Tableaux croisés » (index.html à la racine).
+ * build.js — assemble le SITE AUTONOME de l'outil « Tableaux croisés » (index.html à la racine).
  *
  * Pourquoi : l'outil ouvre des fichiers Excel / CSV quelconques. Servi sur la même adresse que les PWA, son code est de la même
  * ORIGINE qu'Interviews (même localStorage / IndexedDB, donc les contacts). Un second projet Vercel, sur une autre adresse, l'isole.
  *
- * Sortie : dist-pivot/ (ou --out <dossier>), avec la MÊME arborescence relative que le dépôt (la page lit `vendor/…`, `css/…` et `js/…`) :
+ * Sortie : dist/ (ou --out <dossier>), avec la MÊME arborescence relative que le dépôt (la page lit `vendor/…`, `css/…` et `js/…`) :
  *   index.html (la page de l'outil, seul point d'entrée), robots.txt (aucune indexation), css/*.css, js/*.js,
  *   vendor/xlsx/xlsx.full.min.js, vendor/geo/geo-data.js.   Aucun service worker, aucun fichier des applications.
  *
- * Usage :  node build-pivot-site.js [--out <dossier>]      (Vercel : Build Command, Output Directory = dist-pivot)
+ * Usage :  node build.js [--out <dossier>]      (Vercel : Build Command, Output Directory = dist)
  * Le script vit à la racine (pas dans tools/) : .vercelignore supprime tools/ avant le build Vercel.
  */
 const fs = require('node:fs');
@@ -17,7 +17,7 @@ const path = require('node:path');
 
 const ROOT = __dirname;
 const i = process.argv.indexOf('--out');
-const OUT = path.resolve(i > 0 && process.argv[i + 1] ? process.argv[i + 1] : path.join(ROOT, 'dist-pivot'));
+const OUT = path.resolve(i > 0 && process.argv[i + 1] ? process.argv[i + 1] : path.join(ROOT, 'dist'));
 
 const FICHIERS = ['index.html', 'vendor/xlsx/xlsx.full.min.js', 'vendor/geo/geo-data.js'];
 const DOSSIERS = [['css', f => f.endsWith('.css')], ['js', f => f.endsWith('.js')]];   // feuille de style et modules de l'outil

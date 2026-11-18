@@ -3,7 +3,7 @@
  * (Découpé de l'ancien tests/pivot-tool.test.js en suites indépendantes, exécutées en parallèle : seule la
  *  couverture de la page par scénarios change, pas son contenu.)
  *
- * Lancer :  CHROMIUM_PATH=… node tests/pivot-tool-moteur.test.js
+ * Lancer :  CHROMIUM_PATH=… node tests/moteur.test.js
  */
 const path = require('path'), fs = require('fs');
 const E = require('../js/engine.js');

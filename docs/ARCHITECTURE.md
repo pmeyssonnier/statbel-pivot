@@ -38,7 +38,7 @@ Outil mainteneur `index.html` : 100 % local, ouvrable en double-clic (`file://`)
 - **Menus** (`.menu`, `toggleMenu` / `closeMenus`) : un seul ouvert, fermés par clic extérieur ou Échap, **toujours rabattus dans l'écran**. Menu **Exporter** (`#xmenu`) : Copier, CSV, XLSX, PNG, SVG.
 - **Panneau « ⚙ Graphique »** (`#chOpts`, tiroir à droite / feuille sur téléphone, `body.cp-open`, `setPanel`) : fermé par défaut, ouvert par `#btnChOpts` ; réglages appliqués en direct ; **sections repliables** (Données, Affichage, Axes, Tendance) générées par `PivotChartEditor.html` (`SEC_OF`) et filtrées par type dans `refreshVisibility` (une section sans réglage utile est masquée, nombre de réglages affiché). La fenêtre d'édition d'une tuile utilise les mêmes sections. **Pour ajouter une option : la ranger dans `SEC_OF`** (en plus de `DEFS` / `PANEL_ID` / registre des capacités).
 - **Menu Données** : infobulles riches (`data-d` = description, `#railTip`) au survol / clavier (pas sur écran tactile) ; Champs calculés, Groupes, Mesures (`#btnCalc`, `#btnGrp`, `#btnMes`) ouvrent leur section dans la colonne de gauche d'une vue (`gotoSection`).
-- Tests : les entrées de menus fermés se déclenchent par `vact` / `vview` / `xclick` (helpers en tête de chaque `tests/pivot-tool-*.test.js`) ; les vrais clics sont couverts par les blocs « navigation : … ».
+- Tests : les entrées de menus fermés se déclenchent par `vact` / `vview` / `xclick` (helpers en tête de chaque `tests/*.test.js`) ; les vrais clics sont couverts par les blocs « navigation : … ».
 
 ## Flux de données
 
@@ -76,7 +76,7 @@ Les dispositions enregistrées (`layouts.js`) **ne contiennent pas** de graphiqu
 ## Vérifier
 
 ```bash
-node tools/run-tests.js "tests/pivot-tool-*.test.js"   # suites du pivot, en parallèle (moteur pur + 4 suites Playwright headless)
+npm test                                             # 5 suites en parallèle (moteur pur + 4 suites Playwright headless)
 npm run lint                                         # lint (tests + scripts Node ; js/ n'est pas linté)
 npx --yes jscpd@5.4.2 js --min-tokens 40 --min-lines 4   # duplication (seuil du dépôt : 2 %)
 ```
@@ -87,8 +87,8 @@ Version : `PIVOT_VERSION` (`app.js`, cœur) + ligne « Pivot x.y.z » du `CHANGE
 
 L'outil ouvre des fichiers Excel / CSV quelconques : il est publié sur **sa propre origine** (https://statbel-pivot.vercel.app/), distincte de celle des PWA d'enquête (`localStorage` / IndexedDB non partagés).
 
-- `node build-pivot-site.js` assemble `dist-pivot/` (même arborescence relative que le dépôt : la page lit `vendor/…`, `css/…` et `js/…`) : `index.html` (la page de l'outil, seul point d'entrée), `robots.txt` (aucune indexation), `css/*.css`, `js/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/pivot-tool-site.test.js`.
-- Réglages Vercel : Root Directory `.` · Framework *Other* · **Install Command** `true` · **Build Command** `node build-pivot-site.js` · **Output Directory** `dist-pivot` · production sur `main`.
+- `node build.js` assemble `dist/` (même arborescence relative que le dépôt : la page lit `vendor/…`, `css/…` et `js/…`) : `index.html` (la page de l'outil, seul point d'entrée), `robots.txt` (aucune indexation), `css/*.css`, `js/*.js`, `vendor/xlsx/xlsx.full.min.js`, `vendor/geo/geo-data.js`. Aucun service worker. Test : `tests/site.test.js`.
+- Réglages Vercel : Root Directory `.` · Framework *Other* · production sur `main`. Install Command (`true`), Build Command (`node build.js`) et Output Directory (`dist`) sont fixés par `vercel.json`, qui prime sur les réglages du projet.
 - Le script de build vit à la racine et non dans `tools/` : `.vercelignore` supprime `tools/` avant le build.
 - La page reste aussi ouvrable en double-clic depuis le dépôt (`file://`).
 - Ancien emplacement : l'outil vivait dans `statbel-app` (`outils/statbel_pivot.html`, `outils/pivot/`). `statbel-app` ne le redirige plus vers cette adresse : les anciens liens y répondent 404.
